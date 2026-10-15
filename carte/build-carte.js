@@ -30,12 +30,13 @@ const css = `
 html,body{background:var(--creme)}
 .page{width:154mm;height:111mm;position:relative;overflow:hidden;background:var(--creme);page-break-after:always}
 /* RECTO */
-.panneau{position:absolute;left:0;top:0;bottom:0;width:67mm;background:var(--creme);display:flex;align-items:center;justify-content:center}
+.panneau{position:absolute;left:0;top:0;bottom:0;width:69mm;background:var(--creme);display:flex;align-items:center;justify-content:center}
 .panneau img{width:52mm}
-.photo{position:absolute;left:67mm;top:0;right:0;height:63mm;background:url(${b64(here('src/salle-vases.jpg'), 'image/jpeg')}) 50% 60%/cover}
-.photo2{position:absolute;left:67mm;top:63.5mm;right:0;bottom:0;background:url(${b64(here('src/dressage.jpg'), 'image/jpeg')}) 50% 52%/cover}
-.filet-h{position:absolute;left:67mm;right:0;top:63mm;height:.5mm;background:var(--or)}
-.filet{position:absolute;left:67mm;top:0;bottom:0;width:.5mm;background:var(--or)}
+.photo,.photo2{position:absolute;background-size:cover;box-shadow:0 .8mm 2.4mm rgba(60,40,20,.22)}
+.photo{left:71mm;top:9mm;width:63mm;height:53mm;background-image:url(${b64(here('src/salle-vases.jpg'), 'image/jpeg')});background-position:50% 60%}
+.photo2{left:93mm;top:51mm;width:53mm;height:49mm;border:1.4mm solid var(--creme);background-image:url(${b64(here('src/dressage.jpg'), 'image/jpeg')});background-position:50% 52%}
+.cadre-or{position:absolute;left:75mm;top:13mm;width:63mm;height:53mm;border:.35mm solid var(--or)}
+.filet{position:absolute;left:67mm;top:22mm;bottom:22mm;width:.3mm;background:var(--or);opacity:.0}
 /* VERSO */
 .verso{color:var(--vert)}
 .milieu{position:absolute;left:79mm;top:14mm;bottom:14mm;width:.25mm;background:var(--or)}
@@ -64,7 +65,7 @@ const toque = `<svg viewBox="0 0 60 60" fill="none" stroke="#B8903F" stroke-widt
 
 const recto = `<section class="page">
   <div class="panneau"><img src="${b64(here('src/logo-transparent.png'), 'image/png')}"></div>
-  <div class="photo"></div><div class="photo2"></div><div class="filet-h"></div><div class="filet"></div>
+  <div class="cadre-or"></div><div class="photo"></div><div class="photo2"></div>
 </section>`;
 
 const verso = `<section class="page verso">

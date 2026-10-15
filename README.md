@@ -16,3 +16,11 @@ Il ne contient ni code d'application, ni données, ni secret, ni fichier audio. 
 produit une vidéo **muette** ; le son est ajouté ailleurs.
 
 Lancement : onglet **Actions** → « Rendu 3D » → **Run workflow**.
+
+## Montage TEAMKTC (photos → vidéo 9:16)
+
+`scripts/teamktc/montage.py` anime deux photos (kart + équipe) en une vidéo verticale de 15 s
+pour TikTok / Reels : travellings, zooms, reflets, lumière bleue, particules, textes. Les photos
+ne sont pas versionnées ici (dépôt public) :
+
+    python3 scripts/teamktc/montage.py kart.jpg equipe.jpg sortie.mp4

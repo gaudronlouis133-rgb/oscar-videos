@@ -1,7 +1,7 @@
 """Reel vertical « État des lieux du kart » pour la chaîne Karting Tinkan (Louis & Marius).
 
 Histoire : le grand frère prête son kart… mais fait d'abord un état des lieux d'entrée
-sur son téléphone (interface Oscar). Le frère part à 114 km/h, revient, et le comparatif
+sur son téléphone (interface Oscar). Le frère part à 121 km/h, revient, et le comparatif
 entrée / sortie tranche : pneus lisses, retenu sur la caution. Oscar n'apparaît que comme
 l'outil utilisé dans la blague, puis en petite signature à la fin.
 
@@ -24,6 +24,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H, FPS = 1080, 1920, 30
+TOP_KMH = 121
 SR = 44100
 
 ORANGE = (247, 148, 29)
@@ -393,6 +394,18 @@ def stamp(text1, text2):
     return im.rotate(-9, expand=True, resample=Image.BICUBIC)
 
 
+def speed_badge(kmh):
+    """Bandeau TOP SPEED qui recouvre celui incrusté dans la vidéo d'origine."""
+    im = Image.new("RGBA", (880, 360))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, 879, 359), 44, fill=(10, 14, 28, 255))
+    f1, f2 = font("Black", 52), font("Black", 168)
+    t1, t2 = "TOP SPEED", f"{kmh} KM/H"
+    d.text(((880 - f1.getlength(t1)) / 2, 40), t1, font=f1, fill=WHITE)
+    d.text(((880 - f2.getlength(t2)) / 2, 110), t2, font=f2, fill=(255, 230, 0))
+    return im
+
+
 def signature_badge():
     """Petite signature de fin : carré orange + mention discrète."""
     f1, f2 = font("Bold", 34), font("Medium", 28)
@@ -455,7 +468,7 @@ def build(media, work, out_dir):
     cap_hook2 = caption(["…mais avant, j'ai fait", "un [o]ÉTAT DES LIEUX[/] 😏"], 84)
     cap_sign = caption(["Signature obligatoire.", "On ne rigole pas."], 70)
     cap_yel = caption(["Le locataire est prêt 🏁"], 68, style="box")
-    cap_spd = caption(["…et il me le ramène", "à 114 km/h 💀"], 64, style="box")
+    cap_spd = caption(["…et il me le ramène", "à 121 km/h 💀"], 64, style="box")
     cap_red = caption(["Moi au retour du kart 👀"], 68, style="box")
     cap_comp = caption(["Le comparatif", "ne ment pas 🔍"], 72)
     cap_end1 = caption(["Moralité :", "toujours faire un", "[o]état des lieux[/]."], 84)
@@ -539,7 +552,11 @@ def build(media, work, out_dir):
         elif t < S["spd"][1]:
             lt = t - S["spd"][0]
             i = min(int(lt * FPS), len(speed) - 1)
-            fr = Image.open(speed[i]).convert("RGB")
+            src = Image.open(speed[i]).convert("RGBA")
+            # compteur 0 -> 121 km/h posé sur le bandeau d'origine (114)
+            kmh = int(round(TOP_KMH * ease(lt / 1.4)))
+            src.alpha_composite(speed_badge(kmh), (100, 150))
+            fr = src.convert("RGB")
             sh = 1.03 + 0.012 * math.sin(lt * 41)
             fr, _ = kenburns(fr, 0, sh, sh, 0.5 + 0.004 * math.sin(lt * 53), 0.5 + 0.004 * math.cos(lt * 47))
             fr = fr.convert("RGBA")
@@ -684,7 +701,7 @@ def render_audio(total, events, S, engine_wav, with_music):
             if t0 >= total - 0.3:
                 break
             drop = t0 >= S["insp"][0]
-            # le moteur parle tout seul pendant le passage à 114 km/h
+            # le moteur parle tout seul pendant le passage à 121 km/h
             duck = 0.35 if S["spd"][0] <= t0 < S["spd"][1] else 1.0
             if drop or b % 2 == 0:
                 add(sfx("kick", rng), t0, 0.75 * duck)

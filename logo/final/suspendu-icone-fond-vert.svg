@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+    <stop offset="0" stop-color="#B08A3E"/><stop offset=".5" stop-color="#E3CA8A"/><stop offset="1" stop-color="#A9823A"/>
+  </linearGradient>
+  <radialGradient id="pearl" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#F6E7BC"/><stop offset=".5" stop-color="#D2AE5E"/><stop offset="1" stop-color="#93702C"/>
+  </radialGradient>
+</defs><rect width="1080" height="1080" fill="#1F3B2D"/><g>
+    <circle cx="540" cy="540" r="300" fill="none" stroke="url(#gold)" stroke-width="4.8"/>
+    <line x1="540" y1="240" x2="540" y2="555" stroke="#CDAE68" stroke-width="2.6999999999999997"/>
+    <circle cx="540" cy="597" r="42.00000000000001" fill="url(#pearl)"/>
+    <ellipse cx="525.3" cy="580.2" rx="11.760000000000003" ry="7.560000000000001" fill="#FFF8E4" opacity=".7" transform="rotate(-30 525.3 580.2)"/>
+  </g></svg>

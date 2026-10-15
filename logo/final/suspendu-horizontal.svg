@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 600" width="1800" height="600"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+    <stop offset="0" stop-color="#B08A3E"/><stop offset=".5" stop-color="#E3CA8A"/><stop offset="1" stop-color="#A9823A"/>
+  </linearGradient>
+  <radialGradient id="pearl" cx=".35" cy=".3" r=".8">
+    <stop offset="0" stop-color="#F6E7BC"/><stop offset=".5" stop-color="#D2AE5E"/><stop offset="1" stop-color="#93702C"/>
+  </radialGradient>
+</defs><rect width="1800" height="600" fill="#F7F3EA"/>
+    <g>
+    <circle cx="390" cy="300" r="150" fill="none" stroke="url(#gold)" stroke-width="2.4"/>
+    <line x1="390" y1="150" x2="390" y2="307.5" stroke="#C3A15A" stroke-width="1.3499999999999999"/>
+    <circle cx="390" cy="328.5" r="21.000000000000004" fill="url(#pearl)"/>
+    <ellipse cx="382.65" cy="320.1" rx="5.880000000000002" ry="3.7800000000000007" fill="#FFF8E4" opacity=".7" transform="rotate(-30 382.65 320.1)"/>
+  </g>
+    <line x1="620" y1="170" x2="620" y2="430" stroke="#C3A15A" stroke-width="1.2"/>
+    <text x="690" y="268" font-family="CG" font-size="78" font-weight="500" letter-spacing="20" fill="#1F3B2D" text-anchor="start">LA TABLE</text>
+    <text x="690" y="360" font-family="CG" font-size="78" font-weight="500" letter-spacing="20" fill="#1F3B2D" text-anchor="start">DES SAISONS</text>
+    <text x="692" y="430" font-family="Jost" font-size="22" font-weight="300" letter-spacing="9" fill="#1F3B2D" text-anchor="start">UN MOMENT SUSPENDU</text></svg>

@@ -15,11 +15,14 @@ const INFO = {
   adresse: 'Adresse du restaurant<br>Code postal Ville',
   site: 'www.latabledessaisons.fr',
   instagram: '@latabledessaisons',
+  chef: 'Votre Chef',
+  photoChef: null,            // ex. 'src/chef.jpg' quand la vraie photo est disponible
 };
 
 const css = `
 @font-face{font-family:CG;font-weight:300 700;src:url(${font('cg-normal-500.woff2')})}
 @font-face{font-family:CG;font-style:italic;font-weight:300 700;src:url(${font('cg-italic-500.woff2')})}
+@font-face{font-family:Caveat;font-weight:400 700;src:url(${font('caveat.woff2')})}
 @font-face{font-family:Jost;font-weight:100 900;src:url(${font('jost.woff2')})}
 @page{size:154mm 111mm;margin:0}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -43,17 +46,19 @@ h1{font:italic 600 17pt/1.05 CG;margin-bottom:3.2mm}
 .contact{font:400 6.3pt/1.75 Jost;letter-spacing:.06em;color:#33463A}
 .contact div{display:grid;grid-template-columns:19mm 1fr}
 .contact b{font-weight:500;letter-spacing:.18em;color:var(--or);font-size:5.6pt}
-.droite{position:absolute;left:86mm;right:11mm;top:12mm;bottom:12mm}
-.timbre{position:absolute;right:0;top:0;width:21mm;height:25mm;border:.3mm dashed var(--or);border-radius:1mm;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5mm}
-.timbre img{width:13mm;opacity:.9}
-.timbre span{font:400 4.6pt Jost;letter-spacing:.25em;color:var(--or)}
-.lignes{position:absolute;left:0;right:0;bottom:6mm}
-.lignes div{border-bottom:.25mm solid #CDBB93;height:9.5mm}
-.pied{position:absolute;left:0;right:0;bottom:0;font:400 5pt Jost;letter-spacing:.3em;color:var(--or);text-align:right}
+.droite{position:absolute;left:86mm;right:10mm;top:10mm;bottom:9mm;display:flex;flex-direction:column}
+.cadre{position:relative;height:46mm;background:#EFE6D4;border:.35mm solid var(--or);padding:1.2mm;box-shadow:0 .6mm 1.6mm rgba(60,40,20,.18);transform:rotate(-1.2deg)}
+.cadre .photo-chef{width:100%;height:100%;background:#E6DAC2 center/cover;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6mm;color:var(--or)}
+.cadre svg{width:15mm}
+.cadre span{font:400 5pt Jost;letter-spacing:.25em}
+.manuscrit{margin-top:4.2mm;font:500 11.2pt/1.08 Caveat;color:#1F3A5A}
+.manuscrit .sig{display:block;text-align:right;margin-top:1.2mm;font-size:13pt}
+.pied{margin-top:auto;font:400 5pt Jost;letter-spacing:.3em;color:var(--or);text-align:right}
 `;
 
 const star = `<svg class="etoile" viewBox="-16 -16 32 32"><path d="M0,-16 C2,-4 4,-2 16,0 C4,2 2,4 0,16 C-2,4 -4,2 -16,0 C-4,-2 -2,-4 0,-16 Z" fill="#B8903F"/></svg>`;
+
+const toque = `<svg viewBox="0 0 60 60" fill="none" stroke="#B8903F" stroke-width="1.6" stroke-linejoin="round"><path d="M16,40 C6,38 4,24 13,20 C14,10 26,7 31,13 C37,6 50,10 49,20 C57,23 55,38 44,40 Z"/><path d="M17,40 L17,50 L43,50 L43,40"/><path d="M17,45 L43,45"/><path d="M24,40 L24,30 M30,40 L30,28 M36,40 L36,30" stroke-width="1.1"/></svg>`;
 
 const recto = `<section class="page">
   <div class="panneau"><img src="${b64(here('src/logo-transparent.png'), 'image/png')}"></div>
@@ -76,9 +81,13 @@ const verso = `<section class="page verso">
   </div>
   <div class="milieu"></div>
   <div class="droite">
-    <div class="timbre"><img src="${b64(here('src/logo.png'), 'image/png')}" style="display:none"><span>TIMBRE</span></div>
-    <div class="lignes"><div></div><div></div><div></div><div></div></div>
-    <div class="pied">LA TABLE DES SAISONS</div>
+    <div class="cadre"><div class="photo-chef" ${INFO.photoChef ? `style="background-image:url(${b64(here(INFO.photoChef), 'image/jpeg')})"` : ''}>
+      ${INFO.photoChef ? '' : `${toque}<span>PHOTO DU CHEF</span>`}
+    </div></div>
+    <p class="manuscrit">Chers amis,<br>
+      bienvenue à notre table. Ici, chaque assiette suit le rythme des saisons et le travail
+      de nos producteurs. Merci d'être venus partager ce moment avec nous.
+      <span class="sig">${INFO.chef}</span></p>
   </div>
 </section>`;
 

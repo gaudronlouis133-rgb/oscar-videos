@@ -13,44 +13,58 @@ const GREEN = '#1D4A2C';
 // Trois emblèmes gastronomiques pour l'intérieur de l'assiette
 const STAR = 'M0,-15 C1.5,-4 4,-1.5 15,0 C4,1.5 1.5,4 0,15 C-1.5,4 -4,1.5 -15,0 C-4,-1.5 -1.5,-4 0,-15 Z';
 
-// A — le dressage : un trait de sauce au pinceau, points de sauce, quenelle et brin de thym
-function dressage() {
-  const n = 90, r = 104, a0 = 148, a1 = 352, outer = [], inner = [];
+// A — le dressage : trait de sauce au pinceau, quenelle sculptée, brin de thym
+function brushArc(r, a0, a1, profile, n = 120) {
+  const at = (s, rr) => {
+    const ang = ((a0 + (a1 - a0) * s) * Math.PI) / 180;
+    return [CX + Math.cos(ang) * rr, CY + Math.sin(ang) * rr];
+  };
+  const outer = [], inner = [];
   for (let i = 0; i <= n; i++) {
-    const s = i / n, ang = ((a0 + (a1 - a0) * s) * Math.PI) / 180;
-    const t = 22 * Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.05)), 0.6) * (1 - 0.65 * s) + 0.4;
-    const rr = r + 6 * Math.sin(s * Math.PI * 1.3);
-    outer.push([CX + Math.cos(ang) * (rr + t / 2), CY + Math.sin(ang) * (rr + t / 2)]);
-    inner.push([CX + Math.cos(ang) * (rr - t / 2), CY + Math.sin(ang) * (rr - t / 2)]);
+    const sN = i / n, t = profile(sN), rr = r + 5 * Math.sin(sN * Math.PI);
+    outer.push(at(sN, rr + t / 2)); inner.push(at(sN, rr - t / 2));
   }
-  const pts = outer.concat(inner.reverse()).map((p) => p.map((v) => v.toFixed(1)).join(',')).join(' ');
-  const streaks = [-5, -1.5, 3].map((d, k) => {
-    const seg = [];
-    for (let i = 8 + k * 6; i <= 55 + k * 8; i++) {
-      const s = i / n, ang = ((a0 + (a1 - a0) * s) * Math.PI) / 180, rr = r + d + 6 * Math.sin(s * Math.PI * 1.3);
-      seg.push(`${(CX + Math.cos(ang) * rr).toFixed(1)},${(CY + Math.sin(ang) * rr).toFixed(1)}`);
-    }
-    return `<polyline points="${seg.join(' ')}" fill="none" stroke="#F3E2B0" stroke-width=".9" stroke-opacity=".7" stroke-linecap="round"/>`;
+  return outer.concat(inner.reverse()).map((p) => p.map((v) => v.toFixed(1)).join(',')).join(' ');
+}
+function strand(r, a0, a1, d, from, to, w) {
+  const pts = [];
+  for (let i = 0; i <= 40; i++) {
+    const sN = from + ((to - from) * i) / 40, ang = ((a0 + (a1 - a0) * sN) * Math.PI) / 180;
+    const rr = r + d + 5 * Math.sin(sN * Math.PI);
+    pts.push(`${(CX + Math.cos(ang) * rr).toFixed(1)},${(CY + Math.sin(ang) * rr).toFixed(1)}`);
+  }
+  return `<polyline points="${pts.join(' ')}" fill="none" stroke="url(#goldU)" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+function dressage() {
+  const r = 108, a0 = 160, a1 = 28;
+  // corps du trait : attaque franche à gauche, s'affine vers la droite
+  const body = brushArc(r, a0, a1, (x) => (x < 0.06 ? 24 * Math.sqrt(x / 0.06) : 24 * Math.pow(Math.max(0, 1 - (x - 0.06) / 0.62), 1.2)) + 0.2, 140);
+  // fin de pinceau effilochée
+  const strands = [[-7, 0.42, 0.84, 1.3], [-3.5, 0.4, 0.95, 1.9], [0, 0.38, 1, 2.4], [3.5, 0.42, 0.9, 1.6], [6.5, 0.46, 0.78, 1.1]]
+    .map(([d, f, t, w]) => strand(r, a0, a1, d, f, t, w)).join('');
+  const dots = [[1, 7], [2, 5], [3, 3.4]].map(([i, rad]) => {
+    const ang = ((a1 - i * 10) * Math.PI) / 180, rr = r + 2;
+    return `<circle cx="${(CX + Math.cos(ang) * rr).toFixed(1)}" cy="${(CY + Math.sin(ang) * rr).toFixed(1)}" r="${rad}" fill="url(#goldU)"/>`;
   }).join('');
-  const dots = [[0, 9], [1, 6.5], [2, 4.5]].map(([i, rad]) => {
-    const ang = ((a1 + 14 + i * 13) * Math.PI) / 180, rr = r - 2 - i * 2;
-    return `<circle cx="${CX + Math.cos(ang) * rr}" cy="${CY + Math.sin(ang) * rr}" r="${rad}" fill="url(#gold)"/>`;
-  }).join('');
-  // brin de thym : tige fine et feuilles opposées
-  const thyme = Array.from({ length: 8 }, (_, i) => {
-    const t = (i + 1) / 9, x = -56 + 112 * t, y = -8 * Math.sin(t * Math.PI), l = 8 - t * 3.5;
-    return [1, -1].map((side) => `<path transform="translate(${x} ${y}) rotate(${side * 55 - 10})"
-      d="M0,0 C${l * 0.35},${-l * 0.3} ${l * 0.35},${-l * 0.8} 0,${-l} C${-l * 0.35},${-l * 0.8} ${-l * 0.35},${-l * 0.3} 0,0 Z"/>`).join('');
+  // brin de thym : feuilles opposées, de plus en plus petites vers la pointe
+  const thyme = Array.from({ length: 11 }, (_, i) => {
+    const t = (i + 1) / 12, x = -64 + 128 * t, y = -9 * Math.sin(t * Math.PI) + 4 * t, l = 9.5 - t * 5;
+    return [1, -1].map((side) => `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${side * 58 + 12})"
+      d="M0,0 C${l * 0.42},${-l * 0.3} ${l * 0.38},${-l * 0.82} 0,${-l} C${-l * 0.38},${-l * 0.82} ${-l * 0.42},${-l * 0.3} 0,0 Z"/>`).join('');
   }).join('');
   return `
-    <polygon points="${pts}" fill="url(#gold)"/>${dots}
-    <g transform="translate(${CX + 10} ${CY + 8}) rotate(-24)">
-      <path d="M-62,0 C-44,-25 44,-25 62,0 C44,25 -44,25 -62,0 Z" fill="#FFFDF8" stroke="url(#gold)" stroke-width="2.6"/>
-      <path d="M-48,-2 C-26,-15 24,-16 48,-4" fill="none" stroke="#C9A24F" stroke-width="1" stroke-linecap="round" stroke-opacity=".7"/>
-      <path d="M-40,7 C-18,-1 20,-2 44,4" fill="none" stroke="#C9A24F" stroke-width="1" stroke-linecap="round" stroke-opacity=".55"/>
+    <polygon points="${body}" fill="url(#goldU)"/>${strands}${dots}
+    <g transform="translate(${CX - 4} ${CY - 6}) rotate(-12)">
+      <ellipse cx="4" cy="20" rx="60" ry="9" fill="#E9D9B4" opacity=".45"/>
+      <path d="M-62,6 C-52,-18 -18,-26 14,-24 C42,-22 60,-10 64,4 C56,20 28,28 0,28 C-30,28 -54,22 -62,6 Z" fill="url(#quenelle)" stroke="url(#goldU)" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M-58,5 C-34,-6 12,-10 60,3" fill="none" stroke="url(#goldU)" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M-50,-10 C-28,-20 8,-22 40,-16" fill="none" stroke="#C9A24F" stroke-width=".9" stroke-opacity=".6" stroke-linecap="round"/>
+      <path d="M-46,14 C-20,10 18,10 52,10" fill="none" stroke="#C9A24F" stroke-width=".9" stroke-opacity=".5" stroke-linecap="round"/>
     </g>
-    <g transform="translate(${CX + 10} ${CY - 30}) rotate(-20) scale(1.25)" fill="#3E6A4A">
-      <path d="M-62,4 C-30,-12 20,-12 60,-2" fill="none" stroke="#3E6A4A" stroke-width="1.3" stroke-linecap="round"/>${thyme}
+    <g transform="translate(${CX + 30} ${CY - 34}) rotate(-22) scale(.9)" fill="#3E6A4A">
+      <path d="M-70,6 C-36,-12 20,-14 66,-4" fill="none" stroke="#3E6A4A" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M-70,6 C-74,8 -78,12 -80,16" fill="none" stroke="#5E5040" stroke-width="1.4" stroke-linecap="round"/>${thyme}
+      <circle cx="68" cy="-4" r="2.2"/>
     </g>`;
 }
 
@@ -106,6 +120,8 @@ function svg(variant) {
       <stop offset="0" stop-color="#E6C878"/><stop offset=".5" stop-color="#B98A35"/><stop offset="1" stop-color="#D9B868"/>
     </linearGradient>
     <linearGradient id="goldT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9E7026"/><stop offset=".5" stop-color="#D9B862"/><stop offset="1" stop-color="#A97B2C"/></linearGradient>
+    <linearGradient id="goldU" x1="400" y1="160" x2="680" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#A9792A"/><stop offset=".45" stop-color="#E2C27A"/><stop offset=".7" stop-color="#C39A45"/><stop offset="1" stop-color="#9A6C22"/></linearGradient>
+    <linearGradient id="quenelle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFDF7"/><stop offset=".55" stop-color="#FBF2DF"/><stop offset="1" stop-color="#EEDDB6"/></linearGradient>
     <radialGradient id="petal" cx=".5" cy=".7" r=".8"><stop offset="0" stop-color="#F6CBD3"/><stop offset=".55" stop-color="#FFF5F6"/><stop offset="1" stop-color="#FFFFFF"/></radialGradient>
     <linearGradient id="basil" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#5FA544"/><stop offset="1" stop-color="#A8DC80"/></linearGradient>
     <linearGradient id="ginkgo" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E9C95B"/><stop offset="1" stop-color="#F6E7A6"/></linearGradient>

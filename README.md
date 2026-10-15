@@ -20,7 +20,10 @@ Lancement : onglet **Actions** → « Rendu 3D » → **Run workflow**.
 ## Montage TEAMKTC (photos → vidéo 9:16)
 
 `scripts/teamktc/montage.py` anime deux photos (kart + équipe) en une vidéo verticale de 15 s
-pour TikTok / Reels : travellings, zooms, reflets, lumière bleue, particules, textes. Les photos
-ne sont pas versionnées ici (dépôt public) :
+pour TikTok / Reels. Une carte de profondeur (MiDaS v2.1, MIT, téléchargée au premier lancement)
+permet une vraie caméra virtuelle en 2,5D : parallaxe, orbite, mise au point, flou de mouvement,
+rayons de soleil, grain et étalonnage cinéma. Les pixels restent ceux des photos (visages, logos).
+Dépendances : `numpy pillow opencv-python-headless onnxruntime` et ffmpeg. Les photos ne sont pas
+versionnées ici (dépôt public) :
 
     python3 scripts/teamktc/montage.py kart.jpg equipe.jpg sortie.mp4

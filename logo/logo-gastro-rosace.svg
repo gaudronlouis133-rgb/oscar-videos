@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B38533"/><stop offset=".45" stop-color="#E6C878"/><stop offset=".75" stop-color="#C9A04A"/><stop offset="1" stop-color="#A6782A"/>
+    </linearGradient>
+    <linearGradient id="goldV" x1="0" y1="170" x2="0" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E6C878"/><stop offset=".5" stop-color="#B98A35"/><stop offset="1" stop-color="#D9B868"/>
+    </linearGradient>
+    <linearGradient id="goldT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9E7026"/><stop offset=".5" stop-color="#D9B862"/><stop offset="1" stop-color="#A97B2C"/></linearGradient>
+    <linearGradient id="goldU" x1="400" y1="160" x2="680" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#A9792A"/><stop offset=".45" stop-color="#E2C27A"/><stop offset=".7" stop-color="#C39A45"/><stop offset="1" stop-color="#9A6C22"/></linearGradient>
+    <linearGradient id="quenelle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFDF7"/><stop offset=".55" stop-color="#FBF2DF"/><stop offset="1" stop-color="#EEDDB6"/></linearGradient>
+    <radialGradient id="petal" cx=".5" cy=".7" r=".8"><stop offset="0" stop-color="#F6CBD3"/><stop offset=".55" stop-color="#FFF5F6"/><stop offset="1" stop-color="#FFFFFF"/></radialGradient>
+    <linearGradient id="basil" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#5FA544"/><stop offset="1" stop-color="#A8DC80"/></linearGradient>
+    <linearGradient id="ginkgo" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E9C95B"/><stop offset="1" stop-color="#F6E7A6"/></linearGradient>
+    <radialGradient id="grape" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#EEF5C8"/><stop offset="1" stop-color="#BFD682"/></radialGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#FBF8F0"/>
+  <g fill="none" stroke="url(#goldV)" stroke-linecap="round" stroke-width="3">
+  <path d="M318,176 C316,210 318,238 322,258 M330,174 C329,208 330,236 333,258 M342,176 C342,210 342,236 344,258"/>
+  <path d="M318,250 C320,268 330,274 333,276 C336,274 346,268 344,250"/>
+  <path d="M333,276 C326,330 336,390 384,452" stroke-width="3.6"/>
+  <path d="M752,170 C778,200 790,248 772,292 C770,300 764,304 760,306 C764,360 752,410 712,456" stroke-width="3.4"/>
+  <path d="M752,170 C760,214 762,262 760,306" stroke-width="2"/>
+</g>
+  
+  <circle cx="540" cy="290" r="186" fill="#FFFDF8" stroke="url(#gold)" stroke-width="4"/>
+  <circle cx="540" cy="290" r="152" fill="none" stroke="url(#gold)" stroke-width="1.8"/>
+  <g transform="translate(540 290)" fill="none" stroke="url(#goldU)" stroke-linejoin="round"><g transform="rotate(0)">
+      <path d="M0,0 C28,-37.8 28,-70.2 0,-108 C-28,-70.2 -28,-37.8 0,0 Z" stroke-width="2.2"/>
+      <path d="M0,0 C14,-27.215999999999994 14,-50.544 0,-77.75999999999999 C-14,-50.544 -14,-27.215999999999994 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-16.2" x2="0" y2="-64.8" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-116" r="3" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(45)">
+      <path d="M0,0 C20,-25.9 20,-48.1 0,-74 C-20,-48.1 -20,-25.9 0,0 Z" stroke-width="1.6"/>
+      <path d="M0,0 C10,-18.648 10,-34.632000000000005 0,-53.28 C-10,-34.632000000000005 -10,-18.648 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-11.1" x2="0" y2="-44.4" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-82" r="2" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(90)">
+      <path d="M0,0 C28,-37.8 28,-70.2 0,-108 C-28,-70.2 -28,-37.8 0,0 Z" stroke-width="2.2"/>
+      <path d="M0,0 C14,-27.215999999999994 14,-50.544 0,-77.75999999999999 C-14,-50.544 -14,-27.215999999999994 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-16.2" x2="0" y2="-64.8" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-116" r="3" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(135)">
+      <path d="M0,0 C20,-25.9 20,-48.1 0,-74 C-20,-48.1 -20,-25.9 0,0 Z" stroke-width="1.6"/>
+      <path d="M0,0 C10,-18.648 10,-34.632000000000005 0,-53.28 C-10,-34.632000000000005 -10,-18.648 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-11.1" x2="0" y2="-44.4" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-82" r="2" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(180)">
+      <path d="M0,0 C28,-37.8 28,-70.2 0,-108 C-28,-70.2 -28,-37.8 0,0 Z" stroke-width="2.2"/>
+      <path d="M0,0 C14,-27.215999999999994 14,-50.544 0,-77.75999999999999 C-14,-50.544 -14,-27.215999999999994 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-16.2" x2="0" y2="-64.8" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-116" r="3" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(225)">
+      <path d="M0,0 C20,-25.9 20,-48.1 0,-74 C-20,-48.1 -20,-25.9 0,0 Z" stroke-width="1.6"/>
+      <path d="M0,0 C10,-18.648 10,-34.632000000000005 0,-53.28 C-10,-34.632000000000005 -10,-18.648 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-11.1" x2="0" y2="-44.4" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-82" r="2" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(270)">
+      <path d="M0,0 C28,-37.8 28,-70.2 0,-108 C-28,-70.2 -28,-37.8 0,0 Z" stroke-width="2.2"/>
+      <path d="M0,0 C14,-27.215999999999994 14,-50.544 0,-77.75999999999999 C-14,-50.544 -14,-27.215999999999994 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-16.2" x2="0" y2="-64.8" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-116" r="3" fill="url(#goldU)" stroke="none"/>
+    </g><g transform="rotate(315)">
+      <path d="M0,0 C20,-25.9 20,-48.1 0,-74 C-20,-48.1 -20,-25.9 0,0 Z" stroke-width="1.6"/>
+      <path d="M0,0 C10,-18.648 10,-34.632000000000005 0,-53.28 C-10,-34.632000000000005 -10,-18.648 0,0 Z" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="-11.1" x2="0" y2="-44.4" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="-82" r="2" fill="url(#goldU)" stroke="none"/>
+    </g><circle r="24" fill="#FFFDF8" stroke-width="2"/><circle r="18" stroke-width=".8"/>
+    <path transform="scale(1.05)" d="M0,-15 C1.5,-4 4,-1.5 15,0 C4,1.5 1.5,4 0,15 C-1.5,4 -4,1.5 -15,0 C-4,-1.5 -1.5,-4 0,-15 Z" fill="url(#goldU)" stroke="none"/></g>
+  <g font-family="CG" text-anchor="middle" fill="#1D4A2C" font-weight="600">
+    <text x="540" y="598" font-size="104" letter-spacing="2"><tspan font-size="128">L</tspan>A <tspan font-size="128">T</tspan>ABLE</text>
+    <text x="540" y="668" font-size="50" letter-spacing="6">DES</text>
+    <line x1="258" y1="652" x2="455" y2="652" stroke="#C9A24F" stroke-width="1.8"/>
+    <line x1="625" y1="652" x2="822" y2="652" stroke="#C9A24F" stroke-width="1.8"/>
+    <text x="540" y="782" font-size="118" letter-spacing="3"><tspan font-size="146">S</tspan>AISONS</text>
+    <text x="540" y="878" font-size="52" font-style="italic" font-weight="500" letter-spacing="1.5">Un Moment Suspendu</text>
+    <line x1="340" y1="938" x2="515" y2="938" stroke="#C9A24F" stroke-width="1.6"/>
+    <line x1="565" y1="938" x2="740" y2="938" stroke="#C9A24F" stroke-width="1.6"/>
+    <path transform="translate(540 938)" d="M0,-16 C2,-4 4,-2 16,0 C4,2 2,4 0,16 C-2,4 -4,2 -16,0 C-4,-2 -2,-4 0,-16 Z" fill="url(#gold)"/>
+  </g>
+</svg>

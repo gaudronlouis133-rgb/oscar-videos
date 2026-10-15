@@ -92,7 +92,53 @@ function monogramme() {
   <line x1="${CX - 50}" y1="${CY + 112}" x2="${CX + 50}" y2="${CY + 112}" stroke="#C9A24F" stroke-width="1.4"/>`;
 }
 
-const VARIANTS = { dressage, cloche, monogramme };
+// D — couronne de laurier et étoile
+function laurier() {
+  const R = 112, leaves = [];
+  const branch = (side) => {
+    let out = '', stem = [];
+    for (let i = 0; i <= 60; i++) {
+      const a = (90 + side * (12 + i * 2.6)) * Math.PI / 180;
+      stem.push(`${(CX + Math.cos(a) * R).toFixed(1)},${(CY + Math.sin(a) * R).toFixed(1)}`);
+    }
+    out += `<polyline points="${stem.join(' ')}" fill="none" stroke="url(#goldU)" stroke-width="1.8" stroke-linecap="round"/>`;
+    for (let k = 0; k < 11; k++) {
+      const deg = 90 + side * (20 + k * 13.5), a = deg * Math.PI / 180;
+      const x = CX + Math.cos(a) * R, y = CY + Math.sin(a) * R;
+      const tang = deg + side * 90, L = 32 - k * 1.5, W = L * 0.26;
+      for (const o of [-1, 1]) {
+        const rot = tang + o * 30;
+        out += `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(rot + 90).toFixed(1)})"
+          d="M0,0 C${W},${-L * 0.3} ${W * 0.8},${-L * 0.8} 0,${-L} C${-W * 0.8},${-L * 0.8} ${-W},${-L * 0.3} 0,0 Z" fill="url(#goldU)"/>
+          <path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(rot + 90).toFixed(1)})" d="M0,-2 L0,${-L * 0.85}" stroke="#F5E6BC" stroke-width=".7" stroke-opacity=".8"/>`;
+      }
+    }
+    return out;
+  };
+  return `${branch(1)}${branch(-1)}
+    <path transform="translate(${CX} ${CY}) scale(2.7)" d="${STAR}" fill="url(#goldU)"/>
+    <circle cx="${CX}" cy="${CY + R}" r="3.5" fill="url(#goldU)"/>`;
+}
+
+// E — rosace Art déco à huit pétales
+function rosace() {
+  const petal = (L, W) => `M0,0 C${W},${-L * 0.35} ${W},${-L * 0.65} 0,${-L} C${-W},${-L * 0.65} ${-W},${-L * 0.35} 0,0 Z`;
+  let out = `<g transform="translate(${CX} ${CY})" fill="none" stroke="url(#goldU)" stroke-linejoin="round">`;
+  for (let i = 0; i < 8; i++) {
+    const big = i % 2 === 0, L = big ? 108 : 74, W = big ? 28 : 20;
+    out += `<g transform="rotate(${i * 45})">
+      <path d="${petal(L, W)}" stroke-width="${big ? 2.2 : 1.6}"/>
+      <path d="${petal(L * 0.72, W * 0.5)}" stroke-width="1" stroke-opacity=".8"/>
+      <line x1="0" y1="${-L * 0.15}" x2="0" y2="${-L * 0.6}" stroke-width=".8" stroke-opacity=".7"/>
+      <circle cy="${-L - 8}" r="${big ? 3 : 2}" fill="url(#goldU)" stroke="none"/>
+    </g>`;
+  }
+  out += `<circle r="24" fill="#FFFDF8" stroke-width="2"/><circle r="18" stroke-width=".8"/>
+    <path transform="scale(1.05)" d="${STAR}" fill="url(#goldU)" stroke="none"/></g>`;
+  return out;
+}
+
+const VARIANTS = { dressage, cloche, monogramme, laurier, rosace };
 
 function plate(content) {
   return `

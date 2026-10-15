@@ -1,0 +1,24 @@
+{
+  "clips": {
+    "intro": {
+      "ms": 5956,
+      "text": "Aujourd’hui, Camille et Léo emménagent. On commence par l’état des lieux d’entrée, directement sur le téléphone."
+    },
+    "pieces": {
+      "ms": 4232,
+      "text": "Pièce par pièce, je note chaque élément, son état, et je prends des photos."
+    },
+    "horsligne": {
+      "ms": 4441,
+      "text": "Pas de réseau ? Aucun souci : la saisie fonctionne hors ligne."
+    },
+    "signature": {
+      "ms": 4258,
+      "text": "Camille et Léo signent sur place, et le procès-verbal est prêt en PDF."
+    },
+    "outro": {
+      "ms": 6087,
+      "text": "Bienvenue chez vous ! Retrouvez Oscar, votre assistant location, sur mon assistant oscar point com."
+    }
+  }
+}

@@ -1,0 +1,149 @@
+# Rendu 3D « Le jour de l'emménagement » (Blender + personnages MakeHuman).
+# Dépôt PUBLIC : les minutes GitHub Actions sont gratuites et illimitées (runners standard).
+# Aucun secret, aucune donnée, aucun code d'application, aucune voix : le résultat est une
+# vidéo MUETTE, déposée dans les « Artifacts » de l'exécution (onglet Actions).
+#
+# Piloté par scripts/humans/config.json :
+#   "mode": "scene"  → quelques images ("frames") pour valider ;
+#   "mode": "render" → toutes les images, réparties sur "chunks" machines, puis vidéo muette.
+name: Rendu 3D
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rendu-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: Prépare (MPFB, éléments MakeHuman et Poly Haven)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      chunks: ${{ steps.plan.outputs.chunks }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Extension MPFB (extensions.blender.org, empreinte vérifiée)
+        run: |
+          mkdir -p "$RUNNER_TEMP/kit/packs"
+          curl -sSfL "https://extensions.blender.org/api/v1/extensions/?blender_version=4.2.0" -o "$RUNNER_TEMP/ext.json"
+          jq -c '.data[] | select(.id == "mpfb") | {version, archive_url, archive_hash, license}' "$RUNNER_TEMP/ext.json" | tee "$RUNNER_TEMP/mpfb.json"
+          URL=$(jq -r '.archive_url' "$RUNNER_TEMP/mpfb.json" | head -1)
+          HASH=$(jq -r '.archive_hash' "$RUNNER_TEMP/mpfb.json" | head -1 | sed 's/^sha256://')
+          case "$URL" in https://extensions.blender.org/*) ;; *) echo "::error::URL inattendue : $URL"; exit 1;; esac
+          curl -sSfL "$URL" -o "$RUNNER_TEMP/kit/mpfb.zip"
+          echo "$HASH  $RUNNER_TEMP/kit/mpfb.zip" | sha256sum -c -
+      - name: Éléments MakeHuman (CC0)
+        run: |
+          P="$RUNNER_TEMP/kit/packs"
+          curl -sSfL --max-time 600 http://files.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip -o "$P/system.zip"
+          for name in faceunits01 face_units01 faceunits; do
+            for u in "http://files.makehumancommunity.org/asset_packs/$name/${name}_cc0.zip" "http://files.makehumancommunity.org/asset_packs/$name/$name.zip"; do
+              curl -sSfL --max-time 300 "$u" -o "$P/zz_faceunits.zip" && { echo "✔ $u"; break 2; } || echo "– $u"
+            done
+          done
+          [ -s "$P/zz_faceunits.zip" ] || rm -f "$P/zz_faceunits.zip"
+          ls -la "$P"
+      - name: Matières et ciel Poly Haven (CC0)
+        run: |
+          python -m pip install --quiet pillow numpy
+          python scripts/fetch_polyhaven.py "$RUNNER_TEMP/kit/assets"
+      - name: Répartition
+        id: plan
+        run: |
+          C=scripts/humans/config.json
+          MODE=$(jq -r '.mode' $C); N=$(jq -r '.chunks // 1' $C); FR=$(jq -r '.total_frames // 777' $C)
+          if [ "$MODE" = "render" ]; then
+            python3 -c "import json;n=$N;t=$FR;s=-(-t//n);print(json.dumps([{'start':i*s+1,'end':min(t,(i+1)*s)} for i in range(n)]))" > "$RUNNER_TEMP/chunks.json"
+          else
+            echo '[{"start":0,"end":0}]' > "$RUNNER_TEMP/chunks.json"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "chunks=$(cat $RUNNER_TEMP/chunks.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kit
+          path: ${{ runner.temp }}/kit/
+          retention-days: 1
+
+  render:
+    name: Rendu ${{ matrix.chunk.start }}-${{ matrix.chunk.end }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(needs.prepare.outputs.chunks) }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: kit
+          path: ${{ runner.temp }}/kit
+      - name: Installe Blender (Snap Store), MPFB, affichage logiciel
+        run: |
+          sudo snap install blender --classic --channel=4.2lts/stable
+          sudo apt-get update -q && sudo apt-get install -y -q xvfb libgl1-mesa-dri libegl1 jq
+          blender --command extension install-file --repo user_default --enable "$RUNNER_TEMP/kit/mpfb.zip"
+      - name: Rendu
+        run: |
+          C=scripts/humans/config.json
+          K="$RUNNER_TEMP/kit"
+          ARGS=(--packs "$K/packs" --out "$RUNNER_TEMP/frames" --assets "$K/assets" --voice voice/oscar-emmenagement
+                --width "$(jq -r '.width' $C)" --height "$(jq -r '.height' $C)" --samples "$(jq -r '.samples' $C)" --engine "$(jq -r '.engine // "CYCLES"' $C)")
+          if [ "${{ needs.prepare.outputs.mode }}" = "render" ]; then
+            ARGS+=(--start "${{ matrix.chunk.start }}" --end "${{ matrix.chunk.end }}")
+          else
+            ARGS+=(--frames "$(jq -r '.frames' $C)" --portraits "$(jq -r '.portraits // ""' $C)")
+          fi
+          status=0
+          xvfb-run -a -s "-screen 0 1280x1024x24" blender -b --python-exit-code 1 -P scripts/humans/scene.py -- "${ARGS[@]}" > "$RUNNER_TEMP/blender.log" 2>&1 || status=$?
+          grep -vE "^Fra:|Sample [0-9]+/|^ *$|WARN" "$RUNNER_TEMP/blender.log" | tail -60 || true
+          [ "$status" = 0 ] || { echo "::error::Blender a échoué ($status)"; exit 1; }
+          ls "$RUNNER_TEMP/frames" | wc -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frames-${{ matrix.chunk.start }}
+          path: ${{ runner.temp }}/frames/
+          retention-days: 2
+
+  assemble:
+    name: Vidéo muette (ou images de contrôle)
+    needs: [prepare, render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/frames
+      - name: MP4 24 i/s 1080×1920 (sans son) ou JPEG
+        run: |
+          command -v ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          OUT="$RUNNER_TEMP/out"; mkdir -p "$OUT"; F="$RUNNER_TEMP/frames"
+          if [ "${{ needs.prepare.outputs.mode }}" = "render" ]; then
+            ffmpeg -nostdin -y -loglevel error -framerate 24 -i "$F/%04d.png" -vf "scale=1080:1920:flags=lanczos" \
+              -c:v libx264 -pix_fmt yuv420p -crf 16 -preset slow -movflags +faststart "$OUT/vraie3d-emmenagement-muet.mp4"
+          else
+            for f in "$F"/*.png; do ffmpeg -nostdin -y -loglevel error -i "$f" -q:v 3 "$OUT/$(basename "$f" .png).jpg"; done
+          fi
+          ls -la "$OUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resultat
+          path: ${{ runner.temp }}/out/
+          retention-days: 7

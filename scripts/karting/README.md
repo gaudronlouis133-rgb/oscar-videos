@@ -38,3 +38,13 @@ musique synthétisée, et **sans musique** (bruitages + moteur seulement), à ut
 poser un son tendance directement dans TikTok / Instagram.
 
 Les photos et vidéos des enfants ne sont pas versionnées dans ce dépôt.
+
+## Plans animés par l'IA (LTX-Video, open source)
+
+1. `python3 kaggle_ltx.py --media media/ --out ktc_video_ia.ipynb` (les photos sont
+   embarquées dans le carnet).
+2. Sur Kaggle : **Create → New Notebook → File → Import Notebook**, choisir le fichier.
+   Dans le panneau de droite : **Accelerator = GPU T4 x2**, **Internet = On**. **Run All**.
+   Compter 5 à 10 min par plan sur GPU.
+3. Télécharger `freres.mp4`, `kart.mp4`, `kart239.mp4`, `sunset.mp4` (onglet Output) et les
+   poser dans `work/ia/`. `reel.py` les utilise à la place des photos fixes.

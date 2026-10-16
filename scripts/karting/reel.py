@@ -339,6 +339,30 @@ def clip_frame(frames, lt, z, anchor):
     return out
 
 
+def ai_clip(work, name):
+    """Plan animé par l'IA (work/ia/<name>.mp4, sorti du carnet Kaggle) -> images 1080x1920."""
+    src = f"{work}/ia/{name}.mp4"
+    if not os.path.exists(src):
+        return None
+    dst = f"{work}/ia/{name}"
+    if not os.path.isdir(dst):
+        os.makedirs(dst)
+        subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-vf",
+                        f"fps={FPS},scale={W}:{H}:flags=lanczos,unsharp=5:5:0.6",
+                        "-q:v", "2", f"{dst}/%04d.jpg"], check=True)
+    return load_frames(dst)
+
+
+def still_or_ai(still, frames, lt, z0, z1, fx, fy, dur):
+    """Photo avec zoom lent, ou plan IA s'il existe (zoom plus léger, l'IA bouge déjà)."""
+    if frames:
+        fr = Image.open(frames[min(int(lt * FPS), len(frames) - 1)]).convert("RGB")
+        out, _ = kenburns(fr, lt, 1.0, 1.04, 0.5, 0.5, dur)
+        return out
+    out, _ = kenburns(still, lt, z0, z1, fx, fy, dur)
+    return out
+
+
 def build(media, work, out_dir):
     brothers = cover(Image.open(f"{media}/freres.png"), 0.5, 0.0)
     kart_raw = Image.open(f"{media}/kart.webp").convert("RGB")
@@ -357,6 +381,8 @@ def build(media, work, out_dir):
     speed = load_frames(f"{work}/speed")
     red = load_frames(f"{work}/red")
     vig = vignette()
+    ai = {k: ai_clip(work, k) for k in ("freres", "kart", "kart239", "sunset")}
+    print("plans IA :", [k for k, v in ai.items() if v] or "aucun")
 
     # chronologie (secondes)
     S = dict(spd=(0.0, 3.8), freres=(3.8, 5.5), pneus=(5.5, 6.9), moteur=(6.9, 8.3),
@@ -400,20 +426,17 @@ def build(media, work, out_dir):
             place(fr, cap_pov, W / 2, 1660, 1.6, lt)
         elif t < S["freres"][1]:
             lt = t - S["freres"][0]
-            fr, _ = kenburns(brothers, lt, 1.0, 1.08, 0.5, 0.35, dur=1.7)
-            fr = fr.convert("RGBA")
+            fr = still_or_ai(brothers, ai["freres"], lt, 1.0, 1.08, 0.5, 0.35, 1.7).convert("RGBA")
             fr.alpha_composite(vig)
             place(fr, cap_freres, W / 2, 1660, 0.15, lt)
         elif t < S["pneus"][1]:
             lt = t - S["pneus"][0]
-            fr, _ = kenburns(kart, lt, 2.0, 2.2, tire[0], tire[1], dur=1.4)
-            fr = fr.convert("RGBA")
+            fr = still_or_ai(kart, ai["kart"], lt, 2.0, 2.2, tire[0], tire[1], 1.4).convert("RGBA")
             fr.alpha_composite(vig)
             place(fr, cap_pneus, W / 2, 1660, 0.15, lt)
         elif t < S["moteur"][1]:
             lt = t - S["moteur"][0]
-            fr, _ = kenburns(kart239, lt, 1.0, 1.1, 0.35, 0.45, dur=1.4)
-            fr = fr.convert("RGBA")
+            fr = still_or_ai(kart239, ai["kart239"], lt, 1.0, 1.1, 0.35, 0.45, 1.4).convert("RGBA")
             fr.alpha_composite(vig)
             place(fr, cap_moteur, W / 2, 1660, 0.15, lt)
         elif t < S["yel"][1]:
@@ -444,8 +467,7 @@ def build(media, work, out_dir):
             place(fr, cap_red, W / 2, 1660, 0.3, lt)
         else:
             lt = t - S["end"][0]
-            fr, _ = kenburns(sunset, lt, 1.0, 1.12, 0.45, 0.45, dur=3.6)
-            fr = fr.convert("RGBA")
+            fr = still_or_ai(sunset, ai["sunset"], lt, 1.0, 1.12, 0.45, 0.45, 3.6).convert("RGBA")
             fr.alpha_composite(vig)
             place(fr, cap_end, W / 2, 1640, 0.5, lt)
             if lt > 3.1:

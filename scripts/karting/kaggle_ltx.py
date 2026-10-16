@@ -4,7 +4,8 @@ Les photos sont réduites et embarquées en base64 dans le script du notebook, q
 pas de jeu de données à publier. Le notebook sort un .mp4 par plan dans /kaggle/working.
 
 Usage :
-    python3 kaggle_ltx.py --media DOSSIER --out notebook.py
+    python3 kaggle_ltx.py --media DOSSIER --out notebook.py     # script (API Kaggle)
+    python3 kaggle_ltx.py --media DOSSIER --out notebook.ipynb  # carnet à importer à la main
 """
 
 import argparse
@@ -114,6 +115,14 @@ def build(media, out):
         im.save(buf, "JPEG", quality=85)
         shots[name] = [base64.b64encode(buf.getvalue()).decode(), prompt]
     src = NOTEBOOK.replace("__SHOTS__", repr(json.dumps(shots))).replace("__NEG__", repr(NEGATIVE))
+    if out.endswith(".ipynb"):
+        # carnet à importer tel quel dans Kaggle (File > Import Notebook)
+        nb = {"cells": [{"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [],
+                         "source": src.splitlines(keepends=True)}],
+              "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+                           "language_info": {"name": "python"}},
+              "nbformat": 4, "nbformat_minor": 4}
+        src = json.dumps(nb)
     with open(out, "w") as f:
         f.write(src)
     print(out, len(src) // 1024, "Ko")

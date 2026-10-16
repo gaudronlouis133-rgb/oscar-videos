@@ -1,16 +1,16 @@
-"""Reel vertical karting pour la chaîne Karting Tinkan (Louis & Marius).
+"""Reel vertical KTC (Karting Teamcamp) : « POV : t'es le team manager de KTC ».
 
-Une vraie vidéo karting d'abord : passage à 121 km/h, les deux pilotes, la check-list
-avant roulage, le départ en piste, le coucher de soleil. Oscar n'apparaît qu'à l'écran du
-téléphone pendant la check-list du kart (« État des lieux · Kart #202 »), sans slogan :
-ceux qui le remarquent le remarquent.
+Une vraie vidéo karting : passage à 121 km/h, puis tout ce que gère le team manager (les
+pilotes, les pneus, le moteur, le chrono)… et, entre deux sessions, le téléphone tenu devant
+la piste reçoit une notification Oscar « Loyer reçu ». Aucun texte ne nomme Oscar : seule
+la notification le montre.
 
-Textes courts et discrets, montage Pillow + ffmpeg, 1080x1920, 30 i/s.
+Montage Pillow + ffmpeg, 1080x1920, 30 i/s.
 
 Usage :
     python3 reel.py --media DOSSIER --work DOSSIER --out DOSSIER
 
---media : freres.png  kart.webp  sunset.jpg
+--media : freres.png  kart.webp  kart239.jpg  sunset.jpg  main.jpg (main qui tient le téléphone)
 --work  : red/ yellow/ speed/ (images extraites des vidéos) et speed.wav, voir README
 """
 
@@ -205,12 +205,6 @@ def grain(frame, amount=5, seed=0):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA")
 
 
-def flash(frame, strength):
-    if strength <= 0:
-        return frame
-    return Image.blend(frame, Image.new("RGBA", frame.size, (255, 255, 255, 255)), min(strength, 1))
-
-
 def vignette():
     y, x = np.mgrid[0:H, 0:W]
     d = np.sqrt(((x - W / 2) / (W * 0.75)) ** 2 + ((y - H / 2) / (H * 0.75)) ** 2)
@@ -220,76 +214,7 @@ def vignette():
     return Image.fromarray(v)
 
 
-# ---------------------------------------------------------------- UI Oscar
-
-def check_icon(size, ok=True, t=1.0):
-    im = Image.new("RGBA", (size, size))
-    d = ImageDraw.Draw(im)
-    if t <= 0:
-        d.ellipse((3, 3, size - 4, size - 4), outline=(203, 213, 225), width=max(3, size // 14))
-        return im
-    s = 0.4 + 0.6 * back_out(t)
-    r = size / 2 * s
-    c = size / 2
-    d.ellipse((c - r, c - r, c + r, c + r), fill=GREEN if ok else RED)
-    lw = max(4, size // 9)
-    if ok:
-        pts = [(c - r * 0.45, c + r * 0.02), (c - r * 0.1, c + r * 0.36), (c + r * 0.48, c - r * 0.3)]
-        d.line(pts, fill=WHITE, width=lw, joint="curve")
-    else:
-        q = r * 0.38
-        d.line((c - q, c - q, c + q, c + q), fill=WHITE, width=lw)
-        d.line((c - q, c + q, c + q, c - q), fill=WHITE, width=lw)
-    return im
-
-
-def oscar_card(width, title, subtitle, rows, progress, cols=None):
-    """Carte au style de l'app Oscar : bandeau orange + lignes à cocher.
-
-    rows : [(libellé, détail)] ; progress[i] in [0..1] = avancement de la coche i.
-    cols : None (une colonne) ou [(entete, [(ok, detail), ...]), ...] pour le comparatif.
-    """
-    hdr = 132
-    rh = 88
-    pad = 26
-    h = hdr + pad + len(rows) * (rh + 16) + pad - 16 + (60 if cols else 0)
-    im = Image.new("RGBA", (width, h))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, width - 1, h - 1), 38, fill=PAPER)
-    d.rounded_rectangle((0, 0, width - 1, hdr + 40), 38, fill=ORANGE)
-    d.rectangle((0, hdr, width - 1, hdr + 40), fill=PAPER)
-    d.text((36, 24), title, font=font("ExtraBold", 48), fill=NAVY)
-    d.text((36, 82), subtitle, font=font("SemiBold", 29), fill=NAVY)
-    y = hdr + pad
-    if cols:
-        for j, (head, _) in enumerate(cols):
-            cx = width - 70 - (len(cols) - 1 - j) * 150
-            tw = font("Bold", 26).getlength(head)
-            d.text((cx - tw / 2, y + 4), head, font=font("Bold", 26), fill=SLATE)
-        y += 60
-    for i, (label, detail) in enumerate(rows):
-        d.rounded_rectangle((pad, y, width - pad, y + rh), 24, fill=WHITE)
-        d.text((pad + 30, y + 10), label, font=font("Bold", 36), fill=NAVY)
-        p = progress[i] if i < len(progress) else 0
-        if cols:
-            for j, (_, vals) in enumerate(cols):
-                ok, det = vals[i]
-                cx = width - 70 - (len(cols) - 1 - j) * 150
-                pj = min(max(p * len(cols) - j, 0), 1)
-                ic = check_icon(58, ok, pj)
-                im.alpha_composite(ic, (int(cx - 29), y + 4))
-                if pj > 0:
-                    col = GREEN if ok else RED
-                    tw = font("SemiBold", 22).getlength(det)
-                    d.text((cx - tw / 2, y + 62), det, font=font("SemiBold", 22), fill=col)
-            d.text((pad + 30, y + 52), detail, font=font("Medium", 24), fill=SLATE)
-        else:
-            if p > 0:
-                d.text((pad + 30, y + 52), detail, font=font("Medium", 24), fill=SLATE)
-            im.alpha_composite(check_icon(60, True, p), (width - pad - 30 - 60, y + 14))
-        y += rh + 16
-    return im
-
+# ---------------------------------------------------------------- éléments
 
 def drop_shadow(layer, radius=30, alpha=0.45, off=(0, 18)):
     a = np.zeros((layer.height + 4 * radius, layer.width + 4 * radius, 4), np.uint8)
@@ -299,17 +224,6 @@ def drop_shadow(layer, radius=30, alpha=0.45, off=(0, 18)):
     sh = Image.fromarray(a).filter(ImageFilter.GaussianBlur(radius))
     sh.alpha_composite(layer, (2 * radius - off[0], 2 * radius - off[1]))
     return sh
-
-
-def brackets(size, color=ORANGE, lw=9):
-    im = Image.new("RGBA", (size, size))
-    d = ImageDraw.Draw(im)
-    L = size // 4
-    s = size - 1
-    for (x, y, dx, dy) in [(0, 0, 1, 1), (s, 0, -1, 1), (0, s, 1, -1), (s, s, -1, -1)]:
-        d.line((x, y, x + dx * L, y), fill=color, width=lw)
-        d.line((x, y, x, y + dy * L), fill=color, width=lw)
-    return im
 
 
 def soft_caption(text, size=52, color=WHITE):
@@ -345,27 +259,67 @@ def speed_readout(kmh):
     return out
 
 
-def phone_check(rows, progress):
-    """Petit téléphone tenu dans le coin : écran Oscar, check-list du kart."""
-    pw, ph = 640, 1200
-    im = Image.new("RGBA", (pw, ph))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, pw - 1, ph - 1), 84, fill=(17, 17, 20))
-    sw, sh = pw - 40, ph - 40
-    scr = Image.new("RGBA", (sw, sh), PAPER)
-    card = oscar_card(sw, "État des lieux", "Kart #202", rows, progress)
-    s = ImageDraw.Draw(scr)
-    s.rectangle((0, 0, sw, 90), fill=ORANGE)  # barre d'état au-dessus de la carte
-    scr.alpha_composite(card, (0, 70))
-    s.rounded_rectangle((sw / 2 - 100, 14, sw / 2 + 100, 54), 20, fill=(17, 17, 20))
-    # bouton photo en bas de l'écran, comme dans l'app
-    s.rounded_rectangle((sw / 2 - 90, sh - 240, sw / 2 + 90, sh - 90), 30, fill=NAVY)
-    s.ellipse((sw / 2 - 42, sh - 207, sw / 2 + 42, sh - 123), fill=WHITE)
-    s.ellipse((sw / 2 - 26, sh - 191, sw / 2 + 26, sh - 139), fill=ORANGE)
-    mask = Image.new("L", (sw, sh))
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw - 1, sh - 1), 66, fill=255)
-    im.paste(scr, (20, 20), mask)
+def homography(src, dst):
+    """Coefficients PIL PERSPECTIVE : point de dst (sortie) -> point de src (entrée)."""
+    A, B = [], []
+    for (x, y), (u, v) in zip(dst, src):
+        A += [[x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]]
+        B += [u, v]
+    return np.linalg.solve(np.array(A, float), np.array(B, float)).tolist()
+
+
+def key_hand(path):
+    """Détoure la main + téléphone : le fond damier (clair, neutre) relié aux bords devient transparent."""
+    im = Image.open(path).convert("RGB")
+    a = np.asarray(im).astype(int)
+    mn, mx = a.min(2), a.max(2)
+    m = Image.fromarray(((mn > 200) & (mx - mn < 18)).astype(np.uint8) * 255).copy()
+    w, h = m.size
+    seeds = [(x, y) for x in range(0, w, 3) for y in (0, h - 1)] + \
+            [(x, y) for y in range(0, h, 3) for x in (0, w - 1)]
+    for p in seeds:
+        if m.getpixel(p) == 255:
+            ImageDraw.floodfill(m, p, 128)
+    bg = np.array(m) == 128
+    alpha = Image.fromarray((~bg * 255).astype(np.uint8))
+    alpha = alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.0))
+    im.putalpha(alpha)
     return im
+
+
+# coins de l'écran du téléphone dans main.jpg (haut-gauche, haut-droit, bas-droit, bas-gauche)
+SCREEN = [(462, 200), (858, 236), (800, 1142), (383, 1108)]
+SW, SH = 520, 1180  # repère « écran » dans lequel on dessine
+
+
+def notif_banner(title, body):
+    """Bannière de notification iOS, dans le repère écran."""
+    bw, bh = SW - 36, 150
+    im = Image.new("RGBA", (bw, bh))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, bw - 1, bh - 1), 34, fill=(250, 250, 252, 246))
+    d.rounded_rectangle((18, 22, 78, 82), 16, fill=ORANGE)
+    d.ellipse((32, 36, 64, 68), outline=WHITE, width=7)
+    d.text((94, 20), "OSCAR", font=font("SemiBold", 22), fill=(110, 116, 128))
+    d.text((bw - 20 - font("Medium", 22).getlength("maintenant"), 20), "maintenant",
+           font=font("Medium", 22), fill=(130, 136, 148))
+    d.text((94, 52), title, font=font("Bold", 30), fill=NAVY)
+    d.text((94, 94), body, font=font("Medium", 26), fill=SLATE)
+    return drop_shadow(im, 14, 0.28, (0, 6))
+
+
+def screen_overlay(banners, t):
+    """Calque écran : bannières qui descendent du haut puis s'empilent."""
+    lay = Image.new("RGBA", (SW, SH))
+    y = 70
+    for t_in, ban in banners:
+        if t < t_in:
+            continue
+        k = back_out((t - t_in) / 0.45)
+        yy = int(y - (1 - k) * 220)
+        lay.alpha_composite(ban, ((SW - ban.width) // 2, max(yy, -ban.height)))
+        y += ban.height - 34
+    return lay
 
 
 # ---------------------------------------------------------------- montage
@@ -395,32 +349,36 @@ def build(media, work, out_dir):
     kw = int(kart_c.height * W / H)
     kart = kart_c.crop((kx0, 0, kx0 + kw, kart_c.height)).resize((W, H), Image.LANCZOS)
     kscale = W / kw
+    tire = ((1480 - kx0) * kscale / W, 1950 * kscale / H)  # pneu avant, en fraction de l'image
+    kart239 = cover(Image.open(f"{media}/kart239.jpg"), 0.0, 0.5)
     sunset = cover(Image.open(f"{media}/sunset.jpg"), 0.38, 0.5).filter(ImageFilter.GaussianBlur(1.6))
+    hand = key_hand(f"{media}/main.jpg")
     yellow = load_frames(f"{work}/yellow")
     speed = load_frames(f"{work}/speed")
     red = load_frames(f"{work}/red")
     vig = vignette()
 
     # chronologie (secondes)
-    S = dict(spd=(0.0, 3.8), freres=(3.8, 6.4), check=(6.4, 10.9), yel=(10.9, 12.7),
-             red=(12.7, 14.4), end=(14.4, 18.6))
+    S = dict(spd=(0.0, 3.8), freres=(3.8, 5.5), pneus=(5.5, 6.9), moteur=(6.9, 8.3),
+             yel=(8.3, 10.1), pov=(10.1, 14.8), red=(14.8, 16.4), end=(16.4, 20.0))
     total = S["end"][1]
 
-    # points contrôlés sur la photo du kart (coordonnées source, bandes noires retirées)
-    insp = [(1020, 1150), (760, 1300), (1480, 1950), (470, 2330)]
-    rows_ui = [("Volant", "RAS"), ("Plaque 202", "RAS"), ("Pneus", "Neufs"), ("Carénage", "RAS")]
-    T0, STEP = 0.6, 0.85
-
-    cap_spd = soft_caption("pas mal pour un samedi")
-    cap_freres = soft_caption("Louis & Marius 🏁")
-    cap_check = soft_caption("check avant de rouler")
-    cap_yel = soft_caption("à toi")
+    cap_pov = soft_caption("POV : t'es le team manager de KTC", 50)
+    cap_freres = soft_caption("les pilotes ✓")
+    cap_pneus = soft_caption("les pneus ✓")
+    cap_moteur = soft_caption("le moteur ✓")
+    cap_yel = soft_caption("le chrono ✓")
+    cap_pov2 = soft_caption("et le reste ✓")
     cap_red = soft_caption("👀")
-    cap_end = soft_caption("prochain roulage bientôt")
+    cap_end = soft_caption("KTC 🏁", 64)
+
+    banners = [(0.9, notif_banner("Loyer reçu ✓", "850 € · T2 centre-ville")),
+               (2.4, notif_banner("Quittance envoyée", "Au locataire, automatiquement"))]
+    coeffs = homography([(0, 0), (SW, 0), (SW, SH), (0, SH)], SCREEN)
+    HS = 1.32  # échelle de la main dans l'image
 
     events = [(a, "whoosh") for a, _ in list(S.values())[1:]]
-    for i in range(len(insp)):
-        events += [(S["check"][0] + T0 + i * STEP, "shutter")]
+    events += [(S["pov"][0] + t, "notif") for t, _ in banners]
 
     os.makedirs(out_dir, exist_ok=True)
     vpath = f"{work}/video.mp4"
@@ -439,54 +397,59 @@ def build(media, work, out_dir):
             fr = clip_frame(speed, lt, z, "bottom").convert("RGBA")
             kmh = int(round(TOP_KMH * ease(lt / 1.6)))
             place(fr, speed_readout(kmh), W / 2, 300, 0.0, lt, pop=False)
-            place(fr, cap_spd, W / 2, 1660, 1.9, lt)
+            place(fr, cap_pov, W / 2, 1660, 1.6, lt)
         elif t < S["freres"][1]:
             lt = t - S["freres"][0]
-            fr, _ = kenburns(brothers, lt, 1.0, 1.1, 0.5, 0.35, dur=2.6)
+            fr, _ = kenburns(brothers, lt, 1.0, 1.08, 0.5, 0.35, dur=1.7)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
-            place(fr, cap_freres, W / 2, 1660, 0.3, lt)
-        elif t < S["check"][1]:
-            lt = t - S["check"][0]
-            fr, (x0, y0, z) = kenburns(kart, lt, 1.0, 1.08, 0.5, 0.5, dur=4.5)
+            place(fr, cap_freres, W / 2, 1660, 0.15, lt)
+        elif t < S["pneus"][1]:
+            lt = t - S["pneus"][0]
+            fr, _ = kenburns(kart, lt, 2.0, 2.2, tire[0], tire[1], dur=1.4)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
-            prog = []
-            for i, (px, py) in enumerate(insp):
-                ti = T0 + i * STEP
-                prog.append(ease((lt - ti - 0.2) / 0.2))
-                if ti <= lt < ti + STEP:
-                    fx = ((px - kx0) * kscale - x0) * z
-                    fy = (py * kscale - y0) * z
-                    k = back_out((lt - ti) / 0.25)
-                    size = int(170 * (1.4 - 0.4 * k))
-                    fr.alpha_composite(brackets(size, (255, 255, 255), 5),
-                                       (int(fx - size / 2), int(fy - size / 2)))
-                    if lt - ti < 0.1:
-                        fr = flash(fr, 0.5 * (1 - (lt - ti) / 0.1))
-            ph = phone_check(rows_ui, prog)
-            ph = ph.resize((int(ph.width * 0.52), int(ph.height * 0.52)), Image.LANCZOS)
-            ph = drop_shadow(ph, 24, 0.55).rotate(-6, expand=True, resample=Image.BICUBIC)
-            k = back_out(lt / 0.4)
-            place(fr, ph, W - 230, 1430 + (1 - k) * 700, 0, lt, pop=False)
-            place(fr, cap_check, W / 2 - 150, 1780, 0.2, lt)
+            place(fr, cap_pneus, W / 2, 1660, 0.15, lt)
+        elif t < S["moteur"][1]:
+            lt = t - S["moteur"][0]
+            fr, _ = kenburns(kart239, lt, 1.0, 1.1, 0.35, 0.45, dur=1.4)
+            fr = fr.convert("RGBA")
+            fr.alpha_composite(vig)
+            place(fr, cap_moteur, W / 2, 1660, 0.15, lt)
         elif t < S["yel"][1]:
             lt = t - S["yel"][0]
             # zoom qui sort du cadre le texte incrusté en bas
             fr = clip_frame(yellow, lt, 1.26 + 0.03 * lt, "top").convert("RGBA")
-            place(fr, cap_yel, W / 2, 1660, 0.2, lt)
+            place(fr, cap_yel, W / 2, 1660, 0.15, lt)
+        elif t < S["pov"][1]:
+            lt = t - S["pov"][0]
+            # fond : la piste, floue (mise au point sur le téléphone)
+            bg = clip_frame(speed, lt * 0.8, 1.36, "bottom")
+            bg = Image.blend(bg.filter(ImageFilter.GaussianBlur(9)), Image.new("RGB", (W, H)), 0.15)
+            fr = bg.convert("RGBA")
+            ph = hand.copy()
+            scr = screen_overlay(banners, lt).transform(ph.size, Image.PERSPECTIVE, coeffs, Image.BICUBIC)
+            ph.alpha_composite(scr)
+            # léger mouvement de main et entrée par le bas
+            k = ease(lt / 0.5)
+            dx = 8 * math.sin(lt * 1.7)
+            dy = 6 * math.sin(lt * 2.3) + (1 - k) * 900
+            ph = ph.resize((int(ph.width * HS), int(ph.height * HS)), Image.BICUBIC)
+            ph = ph.rotate(1.2 * math.sin(lt * 1.3), resample=Image.BICUBIC, expand=False)
+            fr.alpha_composite(ph, (int(-250 + dx), int(130 + dy)))
+            place(fr, cap_pov2, W / 2, 1800, 3.6, lt)
         elif t < S["red"][1]:
             lt = t - S["red"][0]
             fr = clip_frame(red, lt, 1.26 + 0.05 * lt, "top").convert("RGBA")
             place(fr, cap_red, W / 2, 1660, 0.3, lt)
         else:
             lt = t - S["end"][0]
-            fr, _ = kenburns(sunset, lt, 1.0, 1.12, 0.45, 0.45, dur=4.2)
+            fr, _ = kenburns(sunset, lt, 1.0, 1.12, 0.45, 0.45, dur=3.6)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
-            place(fr, cap_end, W / 2, 1660, 0.6, lt)
-            if lt > 3.7:
-                fr = Image.blend(fr, Image.new("RGBA", (W, H), (0, 0, 0, 255)), ease((lt - 3.7) / 0.5))
+            place(fr, cap_end, W / 2, 1640, 0.5, lt)
+            if lt > 3.1:
+                fr = Image.blend(fr, Image.new("RGBA", (W, H), (0, 0, 0, 255)), ease((lt - 3.1) / 0.5))
         for a, _ in list(S.values())[1:]:
             if a <= t < a + 0.12:
                 zz = 1.05 - 0.05 * ease((t - a) / 0.12)
@@ -499,8 +462,7 @@ def build(media, work, out_dir):
 
     music = render_audio(total, events, S, f"{work}/speed.wav", True)
     dry = render_audio(total, events, S, f"{work}/speed.wav", False)
-    for name, path in [("karting_tinkan_121.mp4", music),
-                       ("karting_tinkan_121_sans_musique.mp4", dry)]:
+    for name, path in [("ktc_team_manager.mp4", music), ("ktc_team_manager_sans_musique.mp4", dry)]:
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", vpath, "-i", path, "-c:v", "copy",
                         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", str(SR),
                         "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart",
@@ -552,6 +514,12 @@ def sfx(kind, rng):
         t = np.arange(n) / SR
         f = 1320 if kind == "ding" else 880
         return 0.28 * (np.sin(2 * np.pi * f * t) + 0.5 * np.sin(2 * np.pi * f * 1.5 * t)) * env(n, 0.002, 0.12)
+    if kind == "notif":
+        n = int(0.5 * SR)
+        t = np.arange(n) / SR
+        a = np.sin(2 * np.pi * 1318.5 * t) * env(n, 0.002, 0.08)
+        b = np.roll(np.sin(2 * np.pi * 1975.5 * t) * env(n, 0.002, 0.12), int(0.09 * SR))
+        return 0.3 * (a + b)
     if kind == "buzz":
         n = int(0.45 * SR)
         t = np.arange(n) / SR
@@ -611,13 +579,15 @@ def render_audio(total, events, S, engine_wav, with_music):
         add(sfx(kind, rng), t0, 0.9)
 
     eng = read_wav(engine_wav)
-    a, b = S["spd"]
-    m = min(len(eng), int((b - a) * SR))
-    fade = np.ones(m, np.float32)
-    k = int(0.15 * SR)
-    fade[:k] = np.linspace(0, 1, k)
-    fade[-k:] = np.linspace(1, 0, k)
-    mix[int(a * SR):int(a * SR) + m] += eng[:m] * fade[:, None] * 1.1
+    # moteur plein pot sur le passage, puis au loin sous le plan du téléphone
+    for key, gain in (("spd", 1.1), ("pov", 0.35)):
+        a, b = S[key]
+        m = min(len(eng), int((b - a) * SR))
+        fade = np.ones(m, np.float32)
+        k = int(0.15 * SR)
+        fade[:k] = np.linspace(0, 1, k)
+        fade[-k:] = np.linspace(1, 0, k)
+        mix[int(a * SR):int(a * SR) + m] += eng[:m] * fade[:, None] * gain
 
     end = int((total - 0.5) * SR)
     mix[end:end + int(0.5 * SR)] *= np.linspace(1, 0, int(0.5 * SR))[:, None][: len(mix) - end]

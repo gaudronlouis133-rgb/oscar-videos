@@ -1,11 +1,11 @@
-"""Reel vertical « État des lieux du kart » pour la chaîne Karting Tinkan (Louis & Marius).
+"""Reel vertical karting pour la chaîne Karting Tinkan (Louis & Marius).
 
-Histoire : le grand frère prête son kart… mais fait d'abord un état des lieux d'entrée
-sur son téléphone (interface Oscar). Le frère part à 121 km/h, revient, et le comparatif
-entrée / sortie tranche : pneus lisses, retenu sur la caution. Oscar n'apparaît que comme
-l'outil utilisé dans la blague, puis en petite signature à la fin.
+Une vraie vidéo karting d'abord : passage à 121 km/h, les deux pilotes, la check-list
+avant roulage, le départ en piste, le coucher de soleil. Oscar n'apparaît qu'à l'écran du
+téléphone pendant la check-list du kart (« État des lieux · Kart #202 »), sans slogan :
+ceux qui le remarquent le remarquent.
 
-Montage 100 % programmatique (Pillow + ffmpeg), 1080x1920, 30 i/s, son synthétisé.
+Textes courts et discrets, montage Pillow + ffmpeg, 1080x1920, 30 i/s.
 
 Usage :
     python3 reel.py --media DOSSIER --work DOSSIER --out DOSSIER
@@ -312,111 +312,59 @@ def brackets(size, color=ORANGE, lw=9):
     return im
 
 
-def pill(text, ok=True):
-    fnt = font("Bold", 36)
-    tw = int(fnt.getlength(text))
-    im = Image.new("RGBA", (tw + 110, 72))
+def soft_caption(text, size=52, color=WHITE):
+    """Légende discrète : graisse moyenne, ombre douce, pas de contour."""
+    t = rich_line(text, font("SemiBold", size), color)
+    a = np.asarray(t).copy()
+    sh = a.copy()
+    sh[..., :3] = 0
+    sh[..., 3] = (sh[..., 3] * 0.7).astype(np.uint8)
+    sh = Image.fromarray(sh).filter(ImageFilter.GaussianBlur(8))
+    out = Image.new("RGBA", (t.width + 20, t.height + 20))
+    out.alpha_composite(sh, (10, 14))
+    out.alpha_composite(t, (10, 10))
+    return out
+
+
+def speed_readout(kmh):
+    """Compteur de vitesse sobre (sans bandeau)."""
+    f1, f2 = font("Bold", 38), font("Black", 132)
+    t1, t2 = "TOP SPEED", f"{kmh} km/h"
+    w = int(max(f1.getlength(t1), f2.getlength(t2))) + 60
+    im = Image.new("RGBA", (w, 230))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, im.width - 1, 71), 36, fill=WHITE)
-    im.alpha_composite(check_icon(48, ok, 1), (14, 12))
-    d.text((74, 14), text, font=fnt, fill=NAVY)
-    return im
+    d.text(((w - f1.getlength(t1)) / 2, 10), t1, font=f1, fill=WHITE)
+    d.text(((w - f2.getlength(t2)) / 2, 52), t2, font=f2, fill=(255, 226, 0))
+    a = np.asarray(im).copy()
+    a[..., :3] = 0
+    sh = Image.fromarray(a).filter(ImageFilter.GaussianBlur(10))
+    out = Image.new("RGBA", im.size)
+    out.alpha_composite(sh, (0, 4))
+    out.alpha_composite(sh, (0, 4))
+    out.alpha_composite(im)
+    return out
 
 
-def signature_path():
-    """Tracé de signature manuscrite (points normalisés 0..1)."""
-    pts = []
-    for i in range(400):
-        u = i / 399
-        x = 0.06 + 0.86 * u
-        y = 0.55 - 0.28 * math.sin(u * 13.5) * (1 - 0.5 * u) - 0.12 * math.sin(u * 4.2 + 1)
-        if u < 0.12:  # grande boucle d'initiale
-            a = u / 0.12 * 2 * math.pi
-            x = 0.12 + 0.07 * math.sin(a)
-            y = 0.48 - 0.32 * math.cos(a) * (1 - u * 3)
-        pts.append((x, y))
-    pts += [(0.55 + 0.4 * u, 0.82 - 0.03 * u) for u in np.linspace(0, 1, 60)]  # paraphe
-    return pts
-
-
-SIG = signature_path()
-
-
-def phone_sign(t, signed_at):
-    """Téléphone à l'écran Oscar « Signature du locataire »."""
-    pw, ph = 700, 1380
+def phone_check(rows, progress):
+    """Petit téléphone tenu dans le coin : écran Oscar, check-list du kart."""
+    pw, ph = 640, 1200
     im = Image.new("RGBA", (pw, ph))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, pw - 1, ph - 1), 92, fill=(17, 17, 20))
-    sx, sy, sw, sh = 22, 22, pw - 44, ph - 44
-    scr = Image.new("RGBA", (sw, sh))
+    d.rounded_rectangle((0, 0, pw - 1, ph - 1), 84, fill=(17, 17, 20))
+    sw, sh = pw - 40, ph - 40
+    scr = Image.new("RGBA", (sw, sh), PAPER)
+    card = oscar_card(sw, "État des lieux", "Kart #202", rows, progress)
     s = ImageDraw.Draw(scr)
-    s.rectangle((0, 0, sw, sh), fill=PAPER)
-    s.rectangle((0, 0, sw, 250), fill=ORANGE)
-    s.text((44, 30), "9:41", font=font("SemiBold", 28), fill=NAVY)
-    s.rounded_rectangle((sw / 2 - 110, 14, sw / 2 + 110, 58), 22, fill=(17, 17, 20))
-    s.text((44, 110), "État des lieux", font=font("ExtraBold", 52), fill=NAVY)
-    s.text((44, 176), "Entrée · Kart #202", font=font("SemiBold", 32), fill=NAVY)
-    y = 290
-    for lab in ["Volant", "Plaque 202", "Pneus", "Carénage"]:
-        s.rounded_rectangle((30, y, sw - 30, y + 74), 20, fill=WHITE)
-        s.text((60, y + 18), lab, font=font("Bold", 32), fill=NAVY)
-        scr.alpha_composite(check_icon(46, True, 1), (sw - 30 - 24 - 46, y + 14))
-        y += 88
-    s.text((44, y + 20), "Signature du locataire", font=font("Bold", 34), fill=NAVY)
-    bx0, by0, bx1, by1 = 30, y + 80, sw - 30, y + 380
-    s.rounded_rectangle((bx0, by0, bx1, by1), 26, fill=WHITE, outline=(203, 213, 225), width=3)
-    n = int(len(SIG) * ease(t / (signed_at - 0.35)))
-    if n > 1:
-        pts = [(bx0 + 20 + x * (bx1 - bx0 - 40), by0 + 20 + yy * (by1 - by0 - 40)) for x, yy in SIG[:n]]
-        s.line(pts, fill=(29, 78, 216), width=7, joint="curve")
-    by = by1 + 40
-    pressed = t >= signed_at
-    col = GREEN if pressed else (148, 163, 184)
-    s.rounded_rectangle((30, by, sw - 30, by + 110), 55, fill=col)
-    lab = "Signé  ✓" if pressed else "Signer"
-    tw = font("Bold", 42).getlength(lab)
-    s.text(((sw - tw) / 2, by + 30), lab, font=font("Bold", 42), fill=WHITE)
+    s.rectangle((0, 0, sw, 90), fill=ORANGE)  # barre d'état au-dessus de la carte
+    scr.alpha_composite(card, (0, 70))
+    s.rounded_rectangle((sw / 2 - 100, 14, sw / 2 + 100, 54), 20, fill=(17, 17, 20))
+    # bouton photo en bas de l'écran, comme dans l'app
+    s.rounded_rectangle((sw / 2 - 90, sh - 240, sw / 2 + 90, sh - 90), 30, fill=NAVY)
+    s.ellipse((sw / 2 - 42, sh - 207, sw / 2 + 42, sh - 123), fill=WHITE)
+    s.ellipse((sw / 2 - 26, sh - 191, sw / 2 + 26, sh - 139), fill=ORANGE)
     mask = Image.new("L", (sw, sh))
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw - 1, sh - 1), 72, fill=255)
-    im.paste(scr, (sx, sy), mask)
-    return im
-
-
-def stamp(text1, text2):
-    f1, f2 = font("Black", 64), font("Black", 44)
-    w = int(max(f1.getlength(text1), f2.getlength(text2))) + 80
-    im = Image.new("RGBA", (w, 210))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((4, 4, w - 5, 205), 22, outline=RED, width=10)
-    d.text(((w - f1.getlength(text1)) / 2, 30), text1, font=f1, fill=RED)
-    d.text(((w - f2.getlength(text2)) / 2, 118), text2, font=f2, fill=RED)
-    return im.rotate(-9, expand=True, resample=Image.BICUBIC)
-
-
-def speed_badge(kmh):
-    """Bandeau TOP SPEED qui recouvre celui incrusté dans la vidéo d'origine."""
-    im = Image.new("RGBA", (880, 360))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, 879, 359), 44, fill=(10, 14, 28, 255))
-    f1, f2 = font("Black", 52), font("Black", 168)
-    t1, t2 = "TOP SPEED", f"{kmh} KM/H"
-    d.text(((880 - f1.getlength(t1)) / 2, 40), t1, font=f1, fill=WHITE)
-    d.text(((880 - f2.getlength(t2)) / 2, 110), t2, font=f2, fill=(255, 230, 0))
-    return im
-
-
-def signature_badge():
-    """Petite signature de fin : carré orange + mention discrète."""
-    f1, f2 = font("Bold", 34), font("Medium", 28)
-    l1, l2 = "État des lieux fait avec Oscar", "monassistantoscar.com"
-    w = int(max(f1.getlength(l1), f2.getlength(l2))) + 120
-    im = Image.new("RGBA", (w, 100))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 8, 84, 92), 22, fill=ORANGE)
-    d.ellipse((20, 28, 64, 72), outline=WHITE, width=9)
-    d.text((104, 8), l1, font=f1, fill=WHITE, stroke_width=2, stroke_fill=(0, 0, 0))
-    d.text((104, 56), l2, font=f2, fill=(226, 232, 240), stroke_width=2, stroke_fill=(0, 0, 0))
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw - 1, sh - 1), 66, fill=255)
+    im.paste(scr, (20, 20), mask)
     return im
 
 
@@ -426,71 +374,53 @@ def load_frames(folder):
     return [os.path.join(folder, f) for f in sorted(os.listdir(folder)) if f.endswith(".jpg")]
 
 
+def clip_frame(frames, lt, z, anchor):
+    """Image de clip zoomée pour sortir du cadre le texte incrusté d'origine.
+
+    anchor = "top" garde le haut (texte en bas), "bottom" garde le bas (texte en haut).
+    """
+    fr = Image.open(frames[min(int(lt * FPS), len(frames) - 1)]).convert("RGB")
+    fy = 1 / (2 * z) if anchor == "top" else 1 - 1 / (2 * z)
+    out, _ = kenburns(fr, 0, z, z, 0.5, fy)
+    return out
+
+
 def build(media, work, out_dir):
     brothers = cover(Image.open(f"{media}/freres.png"), 0.5, 0.0)
     kart_raw = Image.open(f"{media}/kart.webp").convert("RGB")
     # la photo du kart a des bandes noires en haut et en bas : on les retire
-    a = np.asarray(kart_raw).mean(axis=(1, 2))
-    rows = np.where(a > 20)[0]
-    ky0 = rows[0]
+    rows = np.where(np.asarray(kart_raw).mean(axis=(1, 2)) > 20)[0]
     kart_c = kart_raw.crop((0, rows[0], kart_raw.width, rows[-1]))
     kx0 = 190
     kw = int(kart_c.height * W / H)
     kart = kart_c.crop((kx0, 0, kx0 + kw, kart_c.height)).resize((W, H), Image.LANCZOS)
     kscale = W / kw
-    sunset = cover(Image.open(f"{media}/sunset.jpg"), 0.38, 0.5)
-    sunset = sunset.filter(ImageFilter.GaussianBlur(1.6))
-    kart_blur = kart.filter(ImageFilter.GaussianBlur(26))
-    kart_blur = Image.blend(kart_blur, Image.new("RGB", (W, H), (0, 0, 0)), 0.45).convert("RGBA")
+    sunset = cover(Image.open(f"{media}/sunset.jpg"), 0.38, 0.5).filter(ImageFilter.GaussianBlur(1.6))
     yellow = load_frames(f"{work}/yellow")
     speed = load_frames(f"{work}/speed")
     red = load_frames(f"{work}/red")
     vig = vignette()
 
-    # points d'inspection (coordonnées dans la photo du kart, bandes noires retirées)
-    insp = [
-        ((1020, 1150), "Volant : RAS"),
-        ((760, 1300), "Plaque 202 : RAS"),
-        ((1480, 1950), "Pneus : neufs"),
-        ((470, 2330), "Carénage : 0 rayure"),
-    ]
-    insp_rows = [("Volant", "RAS"), ("Plaque 202", "RAS"), ("Pneus", "Neufs, 0 tour"),
-                 ("Carénage", "Aucune rayure")]
-    T_INSP0, T_STEP = 4.0, 1.25
-
     # chronologie (secondes)
-    S = dict(hook=(0.0, 3.0), insp=(3.0, 9.4), sign=(9.4, 12.2), yel=(12.2, 14.0),
-             spd=(14.0, 17.8), red=(17.8, 19.5), comp=(19.5, 23.6), end=(23.6, 28.0))
+    S = dict(spd=(0.0, 3.8), freres=(3.8, 6.4), check=(6.4, 10.9), yel=(10.9, 12.7),
+             red=(12.7, 14.4), end=(14.4, 18.6))
     total = S["end"][1]
-    events = []  # (temps, type) pour le son
 
-    cap_hook1 = caption(["J'ai prêté mon kart", "à mon frère…"], 84)
-    cap_hook2 = caption(["…mais avant, j'ai fait", "un [o]ÉTAT DES LIEUX[/] 😏"], 84)
-    cap_sign = caption(["Signature obligatoire.", "On ne rigole pas."], 70)
-    cap_yel = caption(["Le locataire est prêt 🏁"], 68, style="box")
-    cap_spd = caption(["…et il me le ramène", "à 121 km/h 💀"], 64, style="box")
-    cap_red = caption(["Moi au retour du kart 👀"], 68, style="box")
-    cap_comp = caption(["Le comparatif", "ne ment pas 🔍"], 72)
-    cap_end1 = caption(["Moralité :", "toujours faire un", "[o]état des lieux[/]."], 84)
-    cap_end2 = caption(["Même pour un kart 😉"], 60)
-    st = stamp("PNEUS LISSES", "RETENU SUR LA CAUTION")
-    badge = signature_badge()
-    card_comp_rows = [("Volant", ""), ("Plaque 202", ""), ("Carénage", ""), ("Pneus", "")]
-    comp_cols = [("ENTRÉE", [(True, "RAS"), (True, "RAS"), (True, "RAS"), (True, "neufs")]),
-                 ("SORTIE", [(True, "RAS"), (True, "RAS"), (True, "RAS"), (False, "lisses")])]
+    # points contrôlés sur la photo du kart (coordonnées source, bandes noires retirées)
+    insp = [(1020, 1150), (760, 1300), (1480, 1950), (470, 2330)]
+    rows_ui = [("Volant", "RAS"), ("Plaque 202", "RAS"), ("Pneus", "Neufs"), ("Carénage", "RAS")]
+    T0, STEP = 0.6, 0.85
 
-    # événements sonores
-    events += [(S["insp"][0], "whoosh"), (S["sign"][0], "whoosh"), (S["yel"][0], "whoosh"),
-               (S["spd"][0], "whoosh"), (S["red"][0], "whoosh"), (S["comp"][0], "whoosh"),
-               (S["end"][0], "whoosh"), (1.45, "pop")]
+    cap_spd = soft_caption("pas mal pour un samedi")
+    cap_freres = soft_caption("Louis & Marius 🏁")
+    cap_check = soft_caption("check avant de rouler")
+    cap_yel = soft_caption("à toi")
+    cap_red = soft_caption("👀")
+    cap_end = soft_caption("prochain roulage bientôt")
+
+    events = [(a, "whoosh") for a, _ in list(S.values())[1:]]
     for i in range(len(insp)):
-        ti = T_INSP0 + i * T_STEP
-        events += [(ti, "shutter"), (ti + 0.35, "ding")]
-    events += [(S["sign"][0] + 0.3, "scribble"), (S["sign"][0] + 2.0, "ding")]
-    for i in range(4):
-        events += [(S["comp"][0] + 0.5 + i * 0.45, "ding" if i < 3 else "buzz")]
-    T_STAMP = S["comp"][0] + 2.6
-    events += [(T_STAMP, "stamp")]
+        events += [(S["check"][0] + T0 + i * STEP, "shutter")]
 
     os.makedirs(out_dir, exist_ok=True)
     vpath = f"{work}/video.mp4"
@@ -500,106 +430,67 @@ def build(media, work, out_dir):
          "-pix_fmt", "yuv420p", vpath],
         stdin=subprocess.PIPE,
     )
-    nfr = int(round(total * FPS))
-    for n in range(nfr):
+    for n in range(int(round(total * FPS))):
         t = n / FPS
-        if t < S["hook"][1]:
-            lt = t
-            fr, _ = kenburns(brothers, lt, 1.0, 1.14, 0.5, 0.35, dur=3.0)
+        if t < S["spd"][1]:
+            lt = t - S["spd"][0]
+            # zoom qui sort du cadre le bandeau « 114 KM/H » incrusté en haut
+            z = 1.36 + 0.01 * math.sin(lt * 41)
+            fr = clip_frame(speed, lt, z, "bottom").convert("RGBA")
+            kmh = int(round(TOP_KMH * ease(lt / 1.6)))
+            place(fr, speed_readout(kmh), W / 2, 300, 0.0, lt, pop=False)
+            place(fr, cap_spd, W / 2, 1660, 1.9, lt)
+        elif t < S["freres"][1]:
+            lt = t - S["freres"][0]
+            fr, _ = kenburns(brothers, lt, 1.0, 1.1, 0.5, 0.35, dur=2.6)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
-            place(fr, cap_hook1, W / 2, 1330, 0.05, lt, 1.4)
-            place(fr, cap_hook2, W / 2, 1330, 1.4, lt)
-        elif t < S["insp"][1]:
-            lt = t - S["insp"][0]
-            fr, (x0, y0, z) = kenburns(kart, lt, 1.0, 1.1, 0.5, 0.55, dur=6.4)
+            place(fr, cap_freres, W / 2, 1660, 0.3, lt)
+        elif t < S["check"][1]:
+            lt = t - S["check"][0]
+            fr, (x0, y0, z) = kenburns(kart, lt, 1.0, 1.08, 0.5, 0.5, dur=4.5)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
             prog = []
-            for i, ((px, py), lab) in enumerate(insp):
-                ti = T_INSP0 - S["insp"][0] + i * T_STEP
-                prog.append(ease((lt - ti - 0.3) / 0.25))
-                if ti <= lt < ti + T_STEP:
+            for i, (px, py) in enumerate(insp):
+                ti = T0 + i * STEP
+                prog.append(ease((lt - ti - 0.2) / 0.2))
+                if ti <= lt < ti + STEP:
                     fx = ((px - kx0) * kscale - x0) * z
                     fy = (py * kscale - y0) * z
                     k = back_out((lt - ti) / 0.25)
-                    size = int(230 * (1.5 - 0.5 * k))
-                    fr.alpha_composite(brackets(size), (int(fx - size / 2), int(fy - size / 2)))
-                    p = pill(lab)
-                    side = -1 if fx > W * 0.55 else 1
-                    place(fr, p, min(max(fx + side * (p.width / 2 + 40), p.width / 2 + 20),
-                                     W - p.width / 2 - 20), fy + 160, ti + 0.3, lt)
-                    fr = flash(fr, 0.85 * (1 - (lt - ti) / 0.12) if lt - ti < 0.12 else 0)
-            card = oscar_card(860, "État des lieux", "Entrée · Kart #202 · Locataire : mon frère",
-                              insp_rows, prog)
-            k = back_out(lt / 0.35)
-            place(fr, drop_shadow(card), W / 2, 40 + card.height / 2 - (1 - k) * 600, 0, lt, pop=False)
-        elif t < S["sign"][1]:
-            lt = t - S["sign"][0]
-            fr = kart_blur.copy()
-            ph = phone_sign(lt, 2.0)
+                    size = int(170 * (1.4 - 0.4 * k))
+                    fr.alpha_composite(brackets(size, (255, 255, 255), 5),
+                                       (int(fx - size / 2), int(fy - size / 2)))
+                    if lt - ti < 0.1:
+                        fr = flash(fr, 0.5 * (1 - (lt - ti) / 0.1))
+            ph = phone_check(rows_ui, prog)
+            ph = ph.resize((int(ph.width * 0.52), int(ph.height * 0.52)), Image.LANCZOS)
+            ph = drop_shadow(ph, 24, 0.55).rotate(-6, expand=True, resample=Image.BICUBIC)
             k = back_out(lt / 0.4)
-            ph = ph.resize((int(ph.width * 0.92), int(ph.height * 0.92)), Image.LANCZOS)
-            place(fr, drop_shadow(ph, 40, 0.6), W / 2, 1110 + (1 - k) * 900, 0, lt, pop=False)
-            place(fr, cap_sign, W / 2, 230, 0.15, lt)
+            place(fr, ph, W - 230, 1430 + (1 - k) * 700, 0, lt, pop=False)
+            place(fr, cap_check, W / 2 - 150, 1780, 0.2, lt)
         elif t < S["yel"][1]:
             lt = t - S["yel"][0]
-            i = min(int(lt * FPS), len(yellow) - 1)
-            src = Image.open(yellow[i]).convert("RGBA")
-            place(src, cap_yel, W / 2, 1602, 0.0, lt, pop=False)  # masque le texte incrusté d'origine
-            fr, _ = kenburns(src.convert("RGB"), lt, 1.0, 1.06, 0.5, 0.4, dur=1.8)
-            fr = fr.convert("RGBA")
-        elif t < S["spd"][1]:
-            lt = t - S["spd"][0]
-            i = min(int(lt * FPS), len(speed) - 1)
-            src = Image.open(speed[i]).convert("RGBA")
-            # compteur 0 -> 121 km/h posé sur le bandeau d'origine (114)
-            kmh = int(round(TOP_KMH * ease(lt / 1.4)))
-            src.alpha_composite(speed_badge(kmh), (100, 150))
-            fr = src.convert("RGB")
-            sh = 1.03 + 0.012 * math.sin(lt * 41)
-            fr, _ = kenburns(fr, 0, sh, sh, 0.5 + 0.004 * math.sin(lt * 53), 0.5 + 0.004 * math.cos(lt * 47))
-            fr = fr.convert("RGBA")
-            place(fr, cap_spd, W / 2, 1520, 0.2, lt)
+            # zoom qui sort du cadre le texte incrusté en bas
+            fr = clip_frame(yellow, lt, 1.26 + 0.03 * lt, "top").convert("RGBA")
+            place(fr, cap_yel, W / 2, 1660, 0.2, lt)
         elif t < S["red"][1]:
             lt = t - S["red"][0]
-            i = min(int(lt * FPS), len(red) - 1)
-            src = Image.open(red[i]).convert("RGBA")
-            place(src, cap_red, W / 2, 1600, 0.0, lt, pop=False)  # masque le texte incrusté d'origine
-            fr, _ = kenburns(src.convert("RGB"), lt, 1.0, 1.12, 0.4, 0.45, dur=1.7)
-            fr = fr.convert("RGBA")
-        elif t < S["comp"][1]:
-            lt = t - S["comp"][0]
-            fr = kart_blur.copy()
-            prog = [ease((lt - 0.5 - i * 0.45) / 0.3) for i in range(4)]
-            card = oscar_card(940, "Comparatif", "Kart #202 · Entrée / Sortie", card_comp_rows, prog,
-                              cols=comp_cols)
-            k = back_out(lt / 0.35)
-            place(fr, drop_shadow(card), W / 2, 980 + (1 - k) * 900, 0, lt, pop=False)
-            place(fr, cap_comp, W / 2, 330, 0.1, lt)
-            ts = T_STAMP - S["comp"][0]
-            if lt >= ts:
-                s = 1 + 1.4 * (1 - ease((lt - ts) / 0.14))
-                ss = st.resize((int(st.width * s), int(st.height * s)), Image.BILINEAR)
-                fr.alpha_composite(ss, (int(W / 2 - ss.width / 2), int(1530 - ss.height / 2)))
-                if lt - ts < 0.2:
-                    dx = int(14 * math.sin((lt - ts) * 120) * (1 - (lt - ts) / 0.2))
-                    fr = Image.fromarray(np.roll(np.asarray(fr), dx, axis=1))
+            fr = clip_frame(red, lt, 1.26 + 0.05 * lt, "top").convert("RGBA")
+            place(fr, cap_red, W / 2, 1660, 0.3, lt)
         else:
             lt = t - S["end"][0]
-            fr, _ = kenburns(sunset, lt, 1.0, 1.12, 0.45, 0.45, dur=4.4)
+            fr, _ = kenburns(sunset, lt, 1.0, 1.12, 0.45, 0.45, dur=4.2)
             fr = fr.convert("RGBA")
             fr.alpha_composite(vig)
-            place(fr, cap_end1, W / 2, 470, 0.15, lt)
-            place(fr, cap_end2, W / 2, 760, 1.5, lt)
-            place(fr, badge, W / 2, 1770, 2.2, lt, pop=False)
-            if lt > 4.0:
-                fr = Image.blend(fr, Image.new("RGBA", (W, H), (0, 0, 0, 255)), ease((lt - 4.0) / 0.4))
-        # micro « punch » de zoom à chaque coupe
-        for a, _ in S.values():
-            if 0 < a <= t < a + 0.12:
-                z = 1.06 - 0.06 * ease((t - a) / 0.12)
-                fr, _ = kenburns(fr.convert("RGB"), 0, z, z)
+            place(fr, cap_end, W / 2, 1660, 0.6, lt)
+            if lt > 3.7:
+                fr = Image.blend(fr, Image.new("RGBA", (W, H), (0, 0, 0, 255)), ease((lt - 3.7) / 0.5))
+        for a, _ in list(S.values())[1:]:
+            if a <= t < a + 0.12:
+                zz = 1.05 - 0.05 * ease((t - a) / 0.12)
+                fr, _ = kenburns(fr.convert("RGB"), 0, zz, zz)
                 fr = fr.convert("RGBA")
         fr = grain(fr, 4, n)
         proc.stdin.write(fr.convert("RGB").tobytes())
@@ -608,8 +499,8 @@ def build(media, work, out_dir):
 
     music = render_audio(total, events, S, f"{work}/speed.wav", True)
     dry = render_audio(total, events, S, f"{work}/speed.wav", False)
-    for name, path in [("oscar_karting_etat_des_lieux.mp4", music),
-                       ("oscar_karting_etat_des_lieux_sans_musique.mp4", dry)]:
+    for name, path in [("karting_tinkan_121.mp4", music),
+                       ("karting_tinkan_121_sans_musique.mp4", dry)]:
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", vpath, "-i", path, "-c:v", "copy",
                         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", str(SR),
                         "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart",
@@ -700,7 +591,7 @@ def render_audio(total, events, S, engine_wav, with_music):
             t0 = b * beat
             if t0 >= total - 0.3:
                 break
-            drop = t0 >= S["insp"][0]
+            drop = t0 >= S["freres"][0]
             # le moteur parle tout seul pendant le passage à 121 km/h
             duck = 0.35 if S["spd"][0] <= t0 < S["spd"][1] else 1.0
             if drop or b % 2 == 0:

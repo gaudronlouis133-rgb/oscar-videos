@@ -1,24 +1,22 @@
-# Reel karting « L'état des lieux du kart »
+# Reel karting « 121 km/h »
 
-Vidéo verticale (1080x1920, 28 s) pour la chaîne Karting Tinkan (Louis & Marius).
-Oscar n'est jamais présenté comme une pub : c'est l'outil qui fait la chute de la blague.
+Vidéo verticale (1080x1920, 18,6 s) pour la chaîne Karting Tinkan (Louis & Marius).
+C'est d'abord une vidéo karting. Oscar n'apparaît qu'à l'écran du téléphone pendant la
+check-list du kart, sans slogan ni texte qui le nomme.
 
 ## L'histoire
 
-| Temps | Plan | Texte à l'écran |
+| Temps | Plan | Texte à l'écran (petit, discret) |
 |---|---|---|
-| 0–3 s | Les deux frères en combinaison (zoom lent) | « J'ai prêté mon kart à mon frère… » → « …mais avant, j'ai fait un **ÉTAT DES LIEUX** 😏 » |
-| 3–9,4 s | Kart #202 : 4 « photos » (flash + cadre orange) et la carte Oscar se coche | Volant, Plaque 202, Pneus neufs, Carénage |
-| 9,4–12,2 s | Téléphone, écran Oscar, signature qui se trace puis « Signé ✓ » | « Signature obligatoire. On ne rigole pas. » |
-| 12,2–14 s | Vidéo : pilote jaune sous l'auvent | « Le locataire est prêt 🏁 » |
-| 14–17,8 s | Vidéo : passage, compteur TOP SPEED 0 → 121 KM/H posé sur le bandeau d'origine, son moteur d'origine | « …et il me le ramène à 121 km/h 💀 » |
-| 17,8–19,5 s | Vidéo : casque rouge (réaction) | « Moi au retour du kart 👀 » |
-| 19,5–23,6 s | Comparatif Oscar entrée / sortie : pneus ✗, tampon rouge | « PNEUS LISSES — RETENU SUR LA CAUTION » |
-| 23,6–28 s | Coucher de soleil, casque rouge | « Moralité : toujours faire un état des lieux. Même pour un kart 😉 » + petite mention « État des lieux fait avec Oscar · monassistantoscar.com » |
+| 0–3,8 s | Vidéo : passage en piste, compteur TOP SPEED 0 → 121 km/h, son moteur d'origine | « pas mal pour un samedi » |
+| 3,8–6,4 s | Les deux pilotes en combinaison | « Louis & Marius 🏁 » |
+| 6,4–10,9 s | Kart #202, 4 petits flashs photo ; un téléphone dans le coin montre l'écran Oscar « État des lieux · Kart #202 » qui se coche | « check avant de rouler » |
+| 10,9–12,7 s | Vidéo : pilote jaune sous l'auvent | « à toi » |
+| 12,7–14,4 s | Vidéo : casque rouge | « 👀 » |
+| 14,4–18,6 s | Coucher de soleil, casque rouge, fondu au noir | « prochain roulage bientôt » |
 
-Pourquoi ça marche : l'accroche tient en une phrase, la rivalité entre frères fait réagir en
-commentaire (« et la caution c'était quoi ? »), et la seule mention du produit arrive quand
-la blague est déjà comprise.
+Les textes incrustés des vidéos d'origine (« 114 KM/H », « JOURNEE KARTING »…) sont sortis
+du cadre par un léger zoom.
 
 ## Rendu
 

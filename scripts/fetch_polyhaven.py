@@ -13,12 +13,31 @@ Usage : python fetch_polyhaven.py <dossier> → <dossier>/assets.json
 import json
 import os
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 
 API = 'https://api.polyhaven.com'
 UA = {'User-Agent': 'oscar-vitrine-blender-trial/1.0'}
 ALLOWED = ('polyhaven.org', 'polyhaven.com')
+
+
+def _allowed(host):
+    return any(host == d or host.endswith('.' + d) for d in ALLOWED)
+
+
+class _NoCrossDomainRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse toute redirection vers un hôte hors liste blanche (la validation d'URL de get()
+    ne porte que sur l'URL initiale ; urllib suit les redirections sans revalider l'hôte)."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        host = urllib.parse.urlparse(newurl).hostname or ''
+        if not _allowed(host):
+            raise urllib.error.HTTPError(newurl, code, f'redirection refusée : {host}', headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_OPENER = urllib.request.build_opener(_NoCrossDomainRedirect)
 
 NEEDS = {
     # nom : (type, identifiants préférés, mots-clés)
@@ -36,9 +55,9 @@ NEEDS = {
 
 def get(url):
     host = urllib.parse.urlparse(url).hostname or ''
-    if not any(host == d or host.endswith('.' + d) for d in ALLOWED):
+    if not _allowed(host):
         raise ValueError(f'domaine refusé : {host}')
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+    with _OPENER.open(urllib.request.Request(url, headers=UA), timeout=60) as r:
         return r.read()
 
 

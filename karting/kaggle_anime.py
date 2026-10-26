@@ -52,11 +52,13 @@ SHOTS = [
      "prompt": "Two blue racing karts in the pit lane. The driver in the red helmet in kart number 202 drives "
                "forward toward the camera, the wheels roll, the kart behind with the yellow helmet driver number "
                "239 follows closely, the camera smoothly dollies backward, realistic motion, cinematic motorsport."},
-    {"id": "profil", "image": "profil.jpg", "w": 832, "h": 480, "cx": 0.5, "seed": 22,
-     "prompt": "Side view tracking shot: the blue racing kart number 202 with a driver in a neon yellow and purple "
-               "helmet accelerates fast to the right along the concrete track, the wheels spin, the driver leans "
-               "into the steering wheel, the camera tracks alongside smoothly, motion blur on the tire barriers in "
-               "the background, dynamic high speed motorsport shot."},
+    # 1er essai (« caméra qui suit le kart ») : le kart restait presque immobile à l'image. Caméra fixe :
+    # le kart doit traverser le cadre et en sortir, le mouvement se voit tout de suite.
+    {"id": "profil", "image": "profil.jpg", "w": 832, "h": 480, "cx": 0.5, "seed": 2202,
+     "prompt": "Static camera, fixed tripod shot. The blue racing kart number 202 with a driver in a neon yellow "
+               "and purple helmet launches forward and drives fast to the right, crossing the frame and leaving it "
+               "on the right side, the rear wheels spin and leave a little tire smoke, the shadow moves with the "
+               "kart, the tire barriers stay still, empty concrete track remains, high speed motorsport action."},
 ]
 
 
@@ -100,6 +102,8 @@ def lora_files():
 
 
 def generate(job_dir, res):
+    if not ONLY:  # travail d'agrandissement seul
+        return
     import torch
     from diffusers import AutoencoderKLWan, GGUFQuantizationConfig, WanImageToVideoPipeline, WanTransformer3DModel
     from diffusers.pipelines.wan.pipeline_wan_i2v import prompt_clean

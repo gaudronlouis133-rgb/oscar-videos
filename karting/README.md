@@ -1,6 +1,6 @@
 # Karting #202 — photos animées par l'IA
 
-Vidéo verticale (1080×1920, 20 s, TikTok / Reels / Shorts) au format « ces photos étaient
+Vidéo verticale (1080×1920, 18,5 s, TikTok / Reels / Shorts) au format « ces photos étaient
 figées… jusqu'à ce que l'IA les réveille » : chaque plan démarre sur la vraie photo, puis la même
 image se met en mouvement. Les coupes tombent sur le tempo et la fin reboucle sur le début.
 

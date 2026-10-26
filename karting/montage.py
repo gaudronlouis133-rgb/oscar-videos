@@ -38,10 +38,13 @@ TIMELINE = [
     (9.5, 10.0, "stand", "photo", None, None),
     (10.0, 13.0, "stand", "ia", "Direction\nla piste", "🏁"),
     (13.0, 13.5, "profil", "photo", None, None),
-    (13.5, 17.0, "profil", "ia", "Et là…\nplein gaz", "💨"),
-    (17.0, 20.0, "casque", "fin", "Futur champion ?\nÉcris 202 en commentaire", "🏆"),
+    (13.5, 15.5, "profil", "ia", "Et là…\nplein gaz", "💨"),
+    (15.5, 18.5, "casque", "fin", "Futur champion ?\nÉcris 202 en commentaire", "🏆"),
 ]
-DROPS = [2.0, 6.0, 10.0, 13.5]  # passages photo → IA : flash, secousse, whoosh
+DROPS = [2.0, 6.0, 10.0, 13.5, 15.5]  # flash, secousse, whoosh (passages photo → IA, et coupe vers la fin)
+# Vitesse de lecture par clip. Profil : au-delà de ~1,7 s le modèle « casse » le kart en morceaux,
+# on n'en garde que le départ, joué un peu au ralenti.
+SPEED = {"profil": 0.85}
 # Hauteur du texte par plan : là où il ne cache ni le casque ni le n°202, et au-dessus du bas de
 # l'écran (masqué par les boutons de TikTok / Reels au-delà de ~1600 px).
 TEXT_Y = {"casque": 1250, "face": 860, "stand": 1300, "profil": 190}
@@ -194,11 +197,7 @@ def render_video(photos_dir, clips_dir, out_path):
             if fr is None:
                 img = zoom(stills[k], 1.0 + 0.12 * lt / (b - a), dy=-60 * lt)
             else:
-                # profil : ralenti au début puis accélération (rampe de vitesse)
-                if k == "profil":
-                    pos = (0.45 * lt + 0.55 * lt * lt / (b - a)) * FPS
-                else:
-                    pos = lt * FPS
+                pos = lt * FPS * SPEED.get(k, 1.0)
                 img = fr[min(int(pos), len(fr) - 1)].copy()
                 img = zoom(img, 1.0 + 0.04 * lt / (b - a))
         else:  # fin : dernières images du casque au ralenti, puis retour vers la photo d'origine (boucle)

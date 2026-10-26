@@ -16,3 +16,13 @@ Il ne contient ni code d'application, ni données, ni secret, ni fichier audio. 
 produit une vidéo **muette** ; le son est ajouté ailleurs.
 
 Lancement : onglet **Actions** → « Rendu 3D » → **Run workflow**.
+
+Finition (sous-titres FR, traductions, son, vidéo finale), sur processeur, sans quota :
+
+```
+python scripts/finition.py --voice voice/oscar-emmenagement --out sortie \
+  [--langues en,es] [--voix <dossier des répliques .mp3>] [--muet vraie3d-emmenagement-muet.mp4]
+```
+
+Les sous-titres français viennent des `*.timing.json` (aucun modèle). Les répliques audio restent
+hors du dépôt : `--voix` pointe vers un dossier local.

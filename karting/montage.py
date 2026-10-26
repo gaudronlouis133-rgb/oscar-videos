@@ -41,7 +41,10 @@ TIMELINE = [
     (13.5, 17.0, "profil", "ia", "Et là…\nplein gaz", "💨"),
     (17.0, 20.0, "casque", "fin", "Futur champion ?\nÉcris 202 en commentaire", "🏆"),
 ]
-DROPS = [2.0, 6.0, 10.0, 13.5]  # passages photo → IA : flash, secousse, whoosh
+DROPS = [2.0, 6.0, 10.0, 13.5]
+# Hauteur du texte par plan : là où il ne cache ni le casque ni le n°202, et au-dessus du bas de
+# l'écran (masqué par les boutons de TikTok / Reels au-delà de ~1600 px).
+TEXT_Y = {"casque": 1250, "face": 860, "stand": 1300, "profil": 190}  # passages photo → IA : flash, secousse, whoosh
 
 
 def font(size):
@@ -233,7 +236,7 @@ def render_video(photos_dir, clips_dir, out_path):
         if i in texts:
             beat = (t % BEAT) / BEAT
             sc = pop(lt) * (1 + 0.025 * max(0, 1 - beat * 4))
-            y = 330 if role != "fin" else 760
+            y = TEXT_Y[k]
             paste(img, texts[i], W / 2, y - texts[i].shape[0] * (sc - 1) / 2, sc)
         proc.stdin.write(img.tobytes())
     proc.stdin.close()

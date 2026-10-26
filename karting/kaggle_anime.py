@@ -31,6 +31,10 @@ GGUF_REPO, QUANT = "QuantStack/Wan2.2-I2V-A14B-GGUF", "Q4_K_M"
 LORA_REPOS = ["lightx2v/Wan2.2-Distill-Loras", "lightx2v/Wan2.2-Lightning", "Kijai/WanVideo_comfy"]
 ESRGAN = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
 FRAMES, FPS, STEPS = 81, 16, 4
+# Plans calculés par ce travail (réécrit à l'envoi : un plan par travail, sinon la mémoire vive de
+# Kaggle sature au 2e plan) et clips déjà produits par un autre travail, seulement à agrandir.
+ONLY = ["casque", "face", "stand", "profil"]
+EXTRA_HD = []
 
 # cx : centre horizontal du recadrage (0..1). Ordre = priorité.
 SHOTS = [
@@ -116,7 +120,8 @@ def generate(job_dir, res):
         n = int(ids.attention_mask.sum())
         return torch.cat([h[:, :n], h.new_zeros(1, 512 - n, h.size(2))], dim=1)
 
-    emb = {s["id"]: embed(s["prompt"]) for s in SHOTS}
+    shots = [s for s in SHOTS if s["id"] in ONLY]
+    emb = {s["id"]: embed(s["prompt"]) for s in shots}
     del enc
     gc.collect()
     log("textes encodés")
@@ -149,7 +154,7 @@ def generate(job_dir, res):
     pipe.vae.enable_tiling()
     pipe.enable_model_cpu_offload(gpu_id=0)
 
-    for s in SHOTS:
+    for s in shots:
         img = fit(Image.open(os.path.join(job_dir, s["image"])).convert("RGB"), s["w"], s["h"], s["cx"])
         img.save(f"{OUT}/{s['id']}_depart.png")
         t0 = time.time()
@@ -168,6 +173,9 @@ def generate(job_dir, res):
             export_to_video(list(frames), f"{OUT}/{s['id']}.mp4", fps=FPS, quality=9)
         log(s["id"], res[s["id"]])
         json.dump(res, open(f"{OUT}/rapport.json", "w"), indent=2, ensure_ascii=False)
+        del frames
+        gc.collect()
+        torch.cuda.empty_cache()
     del pipe, experts
     gc.collect()
     torch.cuda.empty_cache()
@@ -185,8 +193,11 @@ def upscale(res):
     model = ModelLoader().load_from_file(w).model.eval().half().to("cuda:0")
     for s in SHOTS:
         src = f"{OUT}/{s['id']}.mp4"
+        if s["id"] in EXTRA_HD:
+            src = next(iter(glob.glob(f"/kaggle/input/**/{s['id']}.mp4", recursive=True)), src)
         if not os.path.exists(src):
             continue
+        res.setdefault(s["id"], {})
         t0 = time.time()
         out = []
         for fr in imageio.get_reader(src, "ffmpeg"):

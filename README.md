@@ -26,3 +26,18 @@ python scripts/finition.py --voice voice/oscar-emmenagement --out sortie \
 
 Les sous-titres français viennent des `*.timing.json` (aucun modèle). Les répliques audio restent
 hors du dépôt : `--voix` pointe vers un dossier local.
+
+Plan de site vidéo pour Google et les autres moteurs (`video-sitemap.xml`), sans modèle ni dépendance :
+
+```
+python scripts/plan_de_site.py --site https://<adresse du site> --out sortie \
+  [--voice voice/oscar-emmenagement] [--videos <dossier des vidéos finales .mp4>]
+```
+
+L'adresse du site est donnée au lancement, jamais écrite dans le dépôt. Titre et description :
+`voice/<vidéo>/fiche.json`. Avec `--videos`, la durée est mesurée et l'image d'aperçu `<nom>.jpg`
+est produite. Adresses par défaut : `{site}/videos/{nom}`, `.mp4` et `.jpg` (options `--page`,
+`--fichier`, `--miniature`).
+
+Sans PC : onglet **Actions** → « Plan de site vidéo » → **Run workflow**, saisir l'adresse du site
+(masquée dans le journal) ; le fichier est dans les « Artifacts » de l'exécution.

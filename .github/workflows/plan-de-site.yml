@@ -31,10 +31,10 @@ jobs:
         with:
           python-version: '3.12'
       - name: Plan de site
-        env:
-          SITE: ${{ inputs.site }}
-          DATE: ${{ inputs.date }}
+        # Adresse lue dans l'événement (jamais dans `env:`, que le journal affiche avant le masque).
         run: |
+          SITE=$(jq -r '.inputs.site' "$GITHUB_EVENT_PATH")
+          DATE=$(jq -r '.inputs.date // ""' "$GITHUB_EVENT_PATH")
           echo "::add-mask::$SITE"
           python scripts/plan_de_site.py --site "$SITE" --out sortie ${DATE:+--date "$DATE"}
       - uses: actions/upload-artifact@v4

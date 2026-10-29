@@ -38,3 +38,6 @@ L'adresse du site est donnée au lancement, jamais écrite dans le dépôt. Titr
 `voice/<vidéo>/fiche.json`. Avec `--videos`, la durée est mesurée et l'image d'aperçu `<nom>.jpg`
 est produite. Adresses par défaut : `{site}/videos/{nom}`, `.mp4` et `.jpg` (options `--page`,
 `--fichier`, `--miniature`).
+
+Sans PC : onglet **Actions** → « Plan de site vidéo » → **Run workflow**, saisir l'adresse du site
+(masquée dans le journal) ; le fichier est dans les « Artifacts » de l'exécution.

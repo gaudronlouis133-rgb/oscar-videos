@@ -1,0 +1,44 @@
+# Plan de site vidéo (video-sitemap.xml) pour Google et les autres moteurs.
+# Dépôt PUBLIC : minutes GitHub Actions gratuites. Lancement manuel uniquement.
+# L'adresse du site est saisie au lancement : jamais écrite dans le dépôt, masquée dans le journal.
+# Le fichier est déposé dans les « Artifacts » de l'exécution (onglet Actions).
+name: Plan de site vidéo
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: "Adresse du site (https://…)"
+        required: true
+      date:
+        description: "Date de publication AAAA-MM-JJ (vide : aujourd'hui)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Fabrique video-sitemap.xml
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Plan de site
+        env:
+          SITE: ${{ inputs.site }}
+          DATE: ${{ inputs.date }}
+        run: |
+          echo "::add-mask::$SITE"
+          python scripts/plan_de_site.py --site "$SITE" --out sortie ${DATE:+--date "$DATE"}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan-de-site-video
+          path: sortie/video-sitemap.xml
+          retention-days: 7

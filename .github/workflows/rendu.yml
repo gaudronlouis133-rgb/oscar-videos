@@ -44,11 +44,16 @@ jobs:
           curl -sSfL "$URL" -o "$RUNNER_TEMP/kit/mpfb.zip"
           echo "$HASH  $RUNNER_TEMP/kit/mpfb.zip" | sha256sum -c -
       - name: Éléments MakeHuman (CC0)
+        # HTTPS d'abord (chiffré, anti-MITM), repli HTTP seulement si HTTPS échoue : aucune
+        # régression si l'origine ne répond qu'en clair, protection dès qu'elle gère TLS.
         run: |
           P="$RUNNER_TEMP/kit/packs"
-          curl -sSfL --max-time 600 http://files.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip -o "$P/system.zip"
+          B=files.makehumancommunity.org/asset_packs
+          curl -sSfL --max-time 600 "https://$B/makehuman_system_assets/makehuman_system_assets_cc0.zip" -o "$P/system.zip" \
+            || curl -sSfL --max-time 600 "http://$B/makehuman_system_assets/makehuman_system_assets_cc0.zip" -o "$P/system.zip"
           for name in faceunits01 face_units01 faceunits; do
-            for u in "http://files.makehumancommunity.org/asset_packs/$name/${name}_cc0.zip" "http://files.makehumancommunity.org/asset_packs/$name/$name.zip"; do
+            for u in "https://$B/$name/${name}_cc0.zip" "https://$B/$name/$name.zip" \
+                     "http://$B/$name/${name}_cc0.zip" "http://$B/$name/$name.zip"; do
               curl -sSfL --max-time 300 "$u" -o "$P/zz_faceunits.zip" && { echo "✔ $u"; break 2; } || echo "– $u"
             done
           done
@@ -62,9 +67,12 @@ jobs:
         id: plan
         run: |
           C=scripts/humans/config.json
-          MODE=$(jq -r '.mode' $C); N=$(jq -r '.chunks // 1' $C); FR=$(jq -r '.total_frames // 777' $C)
+          MODE=$(jq -r '.mode' $C)
+          export N=$(jq -r '.chunks // 1' $C) FR=$(jq -r '.total_frames // 777' $C)
           if [ "$MODE" = "render" ]; then
-            python3 -c "import json;n=$N;t=$FR;s=-(-t//n);print(json.dumps([{'start':i*s+1,'end':min(t,(i+1)*s)} for i in range(n)]))" > "$RUNNER_TEMP/chunks.json"
+            # Valeurs passées par l'environnement et converties en entiers (pas d'interpolation
+            # dans le code Python) : un contenu non numérique échoue au lieu d'être exécuté.
+            python3 -c "import json,os;n=int(os.environ['N']);t=int(os.environ['FR']);s=-(-t//n);print(json.dumps([{'start':i*s+1,'end':min(t,(i+1)*s)} for i in range(n)]))" > "$RUNNER_TEMP/chunks.json"
           else
             echo '[{"start":0,"end":0}]' > "$RUNNER_TEMP/chunks.json"
           fi

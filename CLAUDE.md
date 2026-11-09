@@ -6,8 +6,15 @@
 - **0 €** : rien de payant. Les Actions de ce dépôt public sont gratuites ; les workflows
   restent en lancement manuel (`workflow_dispatch`) avec un `timeout-minutes` sur chaque job.
   Kaggle : processeur de préférence, GPU seulement si nécessaire et annoncé avant.
-- **Pas de régression, que du mieux** (26/10/2026) : chaque changement ne fait qu'améliorer
-  l'existant ; rien de ce qui marche ne doit cesser de marcher. Chercher d'abord si la
+- **Pas de régression, que du mieux** (26/10/2026, rappelé le 09/11/2026 : « tout ce que tu
+  fais doit rajouter et améliorer l'ensemble ») : chaque changement ne fait qu'améliorer
+  l'existant ; rien de ce qui marche ne doit cesser de marcher. Cela vaut pour toute action
+  (code, fusion ou fermeture de PR, rendu, réglage), pas seulement pour le code. Chercher d'abord si la
   fonction existe déjà (ici ou dans la chaîne vidéo existante) pour la réutiliser plutôt que
   la refaire ; vérifier avant et après ; ne rien supprimer ni remplacer de ce qui sert sans
   l'accord de Louis ; en cas de doute, demander avant ; une régression se corrige en priorité.
+- **Éviter les doublons partout** (09/11/2026) : ne jamais créer deux fois la même chose
+  (script, outil, montage, rendu, texte, PR). Avant d'ajouter, chercher s'il existe déjà
+  (dans `main`, les PR ouvertes et les branches en cours, ici et dans la chaîne vidéo
+  d'OSCAR) et, s'il existe, le reprendre ou le compléter. Deux éléments qui font la même
+  chose sont signalés à Louis avant d'être réunis ; rien n'est supprimé sans son accord.

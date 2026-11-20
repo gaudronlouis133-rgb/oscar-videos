@@ -18,3 +18,9 @@
   (dans `main`, les PR ouvertes et les branches en cours, ici et dans la chaîne vidéo
   d'OSCAR) et, s'il existe, le reprendre ou le compléter. Deux éléments qui font la même
   chose sont signalés à Louis avant d'être réunis ; rien n'est supprimé sans son accord.
+- **Études et contrôles mutualisés entre sessions** (20/11/2026 : « mutualise les études comme
+  le SEO avec les autres sessions ouvertes pour éviter les doublons ») : avant une étude ou un
+  contrôle (qualité d'un rendu, voix, durée, sous-titres, coût en minutes ou sur Kaggle…),
+  regarder dans le registre partagé du dépôt de l'application (`docs/ETUDES_PARTAGEES.md`
+  d'`oscar-app`) s'il a déjà été fait pour le même état ; le reprendre plutôt que le refaire,
+  sinon le faire puis y ajouter une ligne. Prévenir les sessions ouvertes avant une étude longue.
